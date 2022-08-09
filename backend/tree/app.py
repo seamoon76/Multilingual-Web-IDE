@@ -13,7 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sys
 import time
 import shutil
-
+from run_order import get_python_run_cmd,get_python_debug_cmd
 app = Flask(__name__)
 CORS(app)
 
@@ -289,24 +289,47 @@ def save_config():
     return json.dumps(result)
 
 
-@app.route('/run', methods=['GET']) 
+@app.route('/run', methods=['POST'])
 def get_run_cmd():
     # fullpath = os.path.join(Paths.rootPath, run_config['execpath'], run_config['execname'])
     # cmd = ' '.join([sys.executable, fullpath, run_config['execargs']])
-    fullpath = os.path.join(Paths.rootPath, run_config['execpath'])
-    cmd = ' '.join([sys.executable, fullpath, run_config['execargs']])+'\n'
-    print(cmd)
-    return json.dumps({'cmd':cmd})
+    cmd = 'cat LANGUAGE_NOT_SUPPORTED'
+    if request.form['language'] == 'python':
+        cmd=get_python_run_cmd(run_config)
+        # fullpath = os.path.join(Paths.rootPath, run_config['execpath'])
+        # cmd = ' '.join([sys.executable, fullpath, run_config['execargs']])+'\n'
+        # print(cmd)
+
+    ################################################
+    # you can add new language support here
+    # e.g.:
+    #   elif request.form['language'] == 'c':
+    #       cmd=get_c_run_cmd(run_config)
+    #
+    # implement get_c_run_cmd() in 'backend/tree/run_order.py' and import it into this file.
+    #
+    ################################################
+    return json.dumps({'cmd': cmd})
 
 
-@app.route('/debug-order', methods=['GET'])
+
+@app.route('/debug-order', methods=['POST'])
 def get_debug_cmd():
     # fullpath = os.path.join(Paths.rootPath, run_config['execpath'], run_config['execname'])
     # cmd = ' '.join([sys.executable, fullpath, run_config['execargs']])
+    cmd = 'cat LANGUAGE_NOT_SUPPORTED'
+    if request.form['language'] == 'python':
+        cmd = get_python_debug_cmd(run_config)
 
-    fullpath = os.path.join(Paths.rootPath, run_config['execpath'])
-    cmd = ' '.join([sys.executable,Paths.backendRootPath+'/onlinePdb/mypdb.py', fullpath, run_config['execargs']])+'\n'
-    print(cmd)
+    ################################################
+    # you can add new language support here
+    # e.g.:
+    #   elif request.form['language'] == 'c':
+    #       cmd=get_c_debug_cmd(run_config)
+    #
+    # implement get_c_debug_cmd() in 'backend/tree/run_order.py' and import it into this file.
+    #
+    ################################################
     return json.dumps({'cmd':cmd})
     
 

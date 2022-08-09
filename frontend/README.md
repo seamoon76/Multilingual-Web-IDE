@@ -22,3 +22,6 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## advanced
+you can add more language support in file 'frontend/src/component/DebugConfig.vue'.

@@ -149,6 +149,7 @@
                 </div>
             </div>
             <div class="IDEAndTerminal">
+                <DebugConfig ref="debugger"></DebugConfig>
                 <div class="IDE">
                      <editor ref="child"></editor>
                 </div>
@@ -195,6 +196,7 @@ import { FitAddon } from 'xterm-addon-fit'
 import "xterm/css/xterm.css"
 import io from 'socket.io-client';
 import editor from "@/component/editor";
+import DebugConfig from "@/component/DebugConfig";
 
 
 export default {
@@ -208,6 +210,7 @@ export default {
       optionData: [],
       folderMenuVisible: false,
       fileMenuVisible: false,
+      language:'',
 
       // terminal
       terminals: [""], //最开始长度是1，每次initXterm执行完之后最后一个是不用的
@@ -242,6 +245,7 @@ export default {
   },
   created: function () {
     this.path = this.$route.params.path;
+    this.language = this.path.split('_')[1]
     // 获取文件树
     this.getData();
   },
@@ -715,52 +719,53 @@ export default {
 
       socket.on("pty-output", function (data) {
         console.log("new output received from server:", data.output);
-        //捕获后端发来的串，并处理
-        var output = data.output
-        var last_character = data.output[data.output.length - 2]
-        var tmp = data.output.lastIndexOf("\n")
-        if (last_character == '$') {
-          if (tmp != -1) {
-            output = data.output.slice(0, data.output.lastIndexOf("\n") + 1) + "$ "
-          } else {
-            output = data.output.substring(data.output.length - 2)
-          }
-        }
-        let tmp_idx_begin=data.output.lastIndexOf("[my-pdb]")
-
-
-          let tmp_idx = data.output.lastIndexOf("lineno:")
-          let tmp_idx_num_end = data.output.lastIndexOf(".end")
-          let left_idx_locals = data.output.lastIndexOf("{")
-          let right_idx_locals = data.output.lastIndexOf("}")
-          if (tmp_idx !== -1 && tmp_idx_num_end !== -1) {
-            try {
-              let line_no = parseInt(data.output.substring(tmp_idx + 7, tmp_idx_num_end));
-              that.$refs.child.changeline(line_no);
-              console.log('change line to ' + line_no)
-            } catch (e) {
-              console.error(e)
-            }
-            if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-              let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
-              if(local_variables.lastIndexOf('{k:v for )')===-1) {
-                that.monitoredVariables = local_variables;
-              }
-
-            }
-          }
-          else if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-              let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
-              if(local_variables.lastIndexOf('{k:v for )')===-1) {
-                that.monitoredVariables = local_variables;
-              }
-
-            }
-          else {
-            debug_console.write(output);
-          }
-
-
+        that.$refs.debugger.handleOutput(data.output,that)
+        // //捕获后端发来的串，并处理
+        // var output = data.output
+        // var last_character = data.output[data.output.length - 2]
+        // var tmp = data.output.lastIndexOf("\n")
+        // if (last_character == '$') {
+        //   if (tmp != -1) {
+        //     output = data.output.slice(0, data.output.lastIndexOf("\n") + 1) + "$ "
+        //   } else {
+        //     output = data.output.substring(data.output.length - 2)
+        //   }
+        // }
+        // let tmp_idx_begin=data.output.lastIndexOf("[my-pdb]")
+        //
+        //
+        //   let tmp_idx = data.output.lastIndexOf("lineno:")
+        //   let tmp_idx_num_end = data.output.lastIndexOf(".end")
+        //   let left_idx_locals = data.output.lastIndexOf("{")
+        //   let right_idx_locals = data.output.lastIndexOf("}")
+        //   if (tmp_idx !== -1 && tmp_idx_num_end !== -1) {
+        //     try {
+        //       let line_no = parseInt(data.output.substring(tmp_idx + 7, tmp_idx_num_end));
+        //       that.$refs.child.changeline(line_no);
+        //       console.log('change line to ' + line_no)
+        //     } catch (e) {
+        //       console.error(e)
+        //     }
+        //     if (left_idx_locals !== -1 && right_idx_locals !== -1) {
+        //       let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
+        //       if(local_variables.lastIndexOf('{k:v for )')===-1) {
+        //         that.monitoredVariables = local_variables;
+        //       }
+        //
+        //     }
+        //   }
+        //   else if (left_idx_locals !== -1 && right_idx_locals !== -1) {
+        //       let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
+        //       if(local_variables.lastIndexOf('{k:v for )')===-1) {
+        //         that.monitoredVariables = local_variables;
+        //       }
+        //
+        //     }
+        //   else {
+        //     debug_console.write(output);
+        //   }
+        //
+        //
 
 
       });
@@ -943,19 +948,21 @@ export default {
     startDebug() {
       this.$refs.child.downloadCode()
       this.debugState = true;
-      axios.get('/debug-order').then((res) => {
+      var data = Qs.stringify({language: this.language})
+
+      axios.post('/debug-order',data,{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then((res) => {
         console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -1) {
           let breakpoints = this.$refs.child.getBreakPoints();
           console.log(breakpoints);
-          this.socket.emit("pty-input", {input: res.data.cmd + this.get_set_breakpoints_order(breakpoints)});
+          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints)});
 
         } else {
           this.createDebugConsole();
           let breakpoints = this.$refs.child.getBreakPoints();
           console.log(breakpoints)
-          this.socket.emit("pty-input", {input: res.data.cmd + this.get_set_breakpoints_order(breakpoints)});
+          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints)});
         }
       }).catch(() => {
         console.log("fail");
@@ -971,16 +978,16 @@ export default {
       if (this.debugState === false) {
         return
       }
-      this.socket.emit("pty-input", {input: this.get_continue_order()});
-      this.socket.emit("pty-input", {input: this.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_continue_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
     },
 
     debugNext() {
       if (this.debugState === false) {
         return
       }
-      this.socket.emit("pty-input", {input: this.get_next_order()});
-      this.socket.emit("pty-input", {input: this.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_next_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
     },
 
     debugStepIn() {
@@ -988,8 +995,8 @@ export default {
         return
       }
       ;
-      this.socket.emit("pty-input", {input: this.get_step_in_order()});
-      this.socket.emit("pty-input", {input: this.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_in_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
 
     },
 
@@ -998,8 +1005,8 @@ export default {
         return
       }
       ;
-      this.socket.emit("pty-input", {input: this.get_step_out_order()});
-      this.socket.emit("pty-input", {input: this.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_out_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
 
     },
 
@@ -1008,7 +1015,7 @@ export default {
         return
       }
 
-      this.socket.emit("pty-input", {input: this.get_stop_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_stop_order()});
       this.debugState = false
 
     },
@@ -1048,7 +1055,9 @@ export default {
     },
     runProgram() {
       this.$refs.child.downloadCode()
-      axios.get('/run').then((res) => {
+      var data = Qs.stringify({language: this.language})
+
+      axios.post('/run',data,{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then((res) => {
         console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -2) {
@@ -1071,36 +1080,9 @@ export default {
       this.addVariableName = ''
     },
 
-    get_set_breakpoints_order(breakpointslist = []) {
-      let order = ''
-      for (let i = 0; i < breakpointslist.length; i++) {
-        order = order + 'b ' + breakpointslist[i] + '\n'
-      }
-      return order
-    },
-    get_continue_order() {
-      return 'c\n'
-    },
-    get_next_order() {
-      return 'n\n'
-    },
-    get_step_in_order() {
-      return 's\n'
-    },
-    get_step_out_order() {
-      return 'return\n'
-    },
-    get_stop_order() {
-      return 'quit\n'
-    },
-    get_line_order() {
-      return 'line\n'+'{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
-    },
-    get_locals(){
-      return '{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
-    }
+
   },
-    components: {Terminal, editor}
+    components: {Terminal, editor,DebugConfig}
   }
 
 </script>
