@@ -39,7 +39,7 @@
 
                 <el-tooltip effect="dark" content="终止(quit)" placement="bottom">
                     <el-button id="stop" type="danger" plain icon="el-icon-video-pause" style="font-size: 30px"
-                        size="mini" circle @click="stopRunning"></el-button>
+                        size="mini" circle @click="stopDebuging"></el-button>
                 </el-tooltip>
                 <!--form-->
                 <el-form ref="form" v-model="configform" id="configForm" class="configForm" label-width="80px">
@@ -159,13 +159,18 @@
                             <button class="CloseTerminal" @click="closeTerminal(index)">&#10005;</button>
                         </div>
                         <div class="ConsoleHead" v-show="this.console_num != 0">
-                            <button class="TerminalHeadText" @click="changeToConsole">Output</button>
+                            <button class="TerminalHeadText" @click="changeToConsole">Debug</button>
                             <button class="CloseTerminal" @click="closeConsole">&#10005;</button>
+                        </div>
+                        <div class="ConsoleHead" v-show="this.output_console_num != 0">
+                            <button class="TerminalHeadText" @click="changeToOutputConsole">OutPut</button>
+                            <button class="CloseTerminal" @click="closeOutputConsole">&#10005;</button>
                         </div>
                         <button class="add" @click="addTerminal()" v-show="validIndex.length !== 0">+</button>
                     </div>
                     <div class="TerminalBody" ref="terminal" v-for="(terminal, index) in terminals" v-show="index === currentIndex"></div>
                     <div class="TerminalBody" ref="console" v-show="currentIndex == -1"></div>
+                    <div class="TerminalBody" ref="output-console" v-show="currentIndex == -2"></div>
                     <div class="TerminalBottom" ref="TerminalBottom">
                         <button class="TerminalButton" @click="createTerminal()">终端</button>
                         <button class="TerminalButton" @click="createOutputConsole()">输出</button>
@@ -215,6 +220,8 @@ export default {
       socket: undefined,
       console_num: 0, //现有调试控制台个数
       debug_console: "", //当前调试控制台
+      output_console_num: 0, // 现在的输出窗口的个数
+      output_console: "", //当前的输出窗口
 
       // tools
       configMenuVisible: false,
@@ -454,12 +461,12 @@ export default {
               this.getData()
               this.$message({
                 type: 'success',
-                message: '文件上传成功！'
+                message: '文件保存成功！'
               });
             } else {
               this.$message({
                 type: 'info',
-                message: '文件上传失败，请稍后重试'
+                message: '文件保存失败，请稍后重试'
               });
             }
           })
@@ -661,6 +668,7 @@ export default {
       if (this.console_num > 0) {
         return
       }
+      // todo:不确定要不要关闭output窗口，也就是说在调试的时候要不要关闭运行的那个窗口
       //定义console类型（terminal改动一下）
       let debug_console = new Terminal({
         rendererType: "canvas",
@@ -783,11 +791,22 @@ export default {
     },
 
     createOutputConsole() {
-      if (this.console_num > 0) {
+      if (this.output_console_num > 0) {
         return
       }
+      // let that = this
+
+      // if(that.currentIndex===-1)
+      // {
+      //   // 调试控制台还开着，关闭
+      //   if(that.debugState===true)
+      //   {
+      //     that.stopDebuging()
+      //   }
+      //   that.closeConsole()
+      // }
       //定义console类型（terminal改动一下）
-      let debug_console = new Terminal({
+      let output_console = new Terminal({
         rendererType: "canvas",
         rows: this.rows,
         cols: this.cols,
@@ -804,11 +823,11 @@ export default {
       });
 
       // 打开terminal实例
-      debug_console.open(this.$refs["console"]);
+      output_console.open(this.$refs["output-console"]);
 
       // canvas背景全屏
       const fitAddon = new FitAddon();
-      debug_console.loadAddon(fitAddon);
+      output_console.loadAddon(fitAddon);
       fitAddon.fit();
 
 
@@ -824,11 +843,11 @@ export default {
       }
 
       //前后端通信
-      debug_console.onData((data) => {
+      output_console.onData((data) => {
         socket.emit("pty-input", {input: data});
       });
 
-      let socket = io.connect("http://127.0.0.1:5003/pty");
+      let socket = io.connect("http://127.0.0.1:5002/pty");
 
       socket.on("pty-output", function (data) {
         console.log("new output received from server:", data.output);
@@ -843,7 +862,7 @@ export default {
             output = data.output.substring(data.output.length - 2)
           }
         }
-        debug_console.write(output);
+        output_console.write(output);
       });
 
       socket.on("connect", (response) => {
@@ -856,18 +875,38 @@ export default {
 
       this.socket = socket;
       //保存console实例
-      this.debug_console = debug_console;
-
+      this.output_console = output_console;
 
       //计数器加1
-      this.console_num += 1
-      this.currentIndex = -1
+      this.output_console_num += 1
+      this.currentIndex = -2
 
       //运行console
-      if (debug_console._initialized)
+      if (output_console._initialized)
         return;
       // 初始化
-      debug_console._initialized = true;
+      output_console._initialized = true;
+
+    },
+
+    //将当前页面切换为输出控制台页面
+    changeToOutputConsole() {
+      this.currentIndex = -2
+    },
+
+    //关闭输出控制台
+    closeOutputConsole() {
+      this.output_console.dispose()
+      this.output_console = ""
+      this.output_console_num = 0
+
+      this.currentIndex = Math.max.apply(null, this.validIndex) - 1
+      this.currentTerminal = this.terminals[this.currentIndex + 1]
+
+      if (this.socket) {
+        this.socket.disconnect();
+        this.socket = undefined
+      }
 
     },
 
@@ -883,6 +922,7 @@ export default {
       this.console_num = 0
 
       this.currentIndex = Math.max.apply(null, this.validIndex) - 1
+      console.log('this.currentIndex'+this.currentIndex)
       this.currentTerminal = this.terminals[this.currentIndex + 1]
 
       if (this.socket) {
@@ -901,6 +941,7 @@ export default {
 
 
     startDebug() {
+      this.$refs.child.downloadCode()
       this.debugState = true;
       axios.get('/debug-order').then((res) => {
         console.log(res.data)
@@ -930,7 +971,6 @@ export default {
       if (this.debugState === false) {
         return
       }
-      ;
       this.socket.emit("pty-input", {input: this.get_continue_order()});
       this.socket.emit("pty-input", {input: this.get_line_order()});
     },
@@ -939,7 +979,6 @@ export default {
       if (this.debugState === false) {
         return
       }
-      ;
       this.socket.emit("pty-input", {input: this.get_next_order()});
       this.socket.emit("pty-input", {input: this.get_line_order()});
     },
@@ -964,11 +1003,11 @@ export default {
 
     },
 
-    stopRunning() {
+    stopDebuging() {
       if (this.debugState === false) {
         return
       }
-      ;
+
       this.socket.emit("pty-input", {input: this.get_stop_order()});
       this.debugState = false
 
@@ -1008,10 +1047,11 @@ export default {
       })
     },
     runProgram() {
+      this.$refs.child.downloadCode()
       axios.get('/run').then((res) => {
         console.log(res.data)
         //this.createDebugConsole();
-        if (this.currentIndex == -1) {
+        if (this.currentIndex == -2) {
           this.socket.emit("pty-input", {input: res.data.cmd});
         } else {
           this.createOutputConsole();
