@@ -1,0 +1,167 @@
+#popup {
+    width: 400px;
+    height: 500px;
+    overflow: auto;
+    margin: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 999;
+    border-color: rgb(169, 235, 252);
+    border-radius: 20px;
+    background-color: rgb(227, 237, 237);
+    overflow: hidden;
+    display: none;
+    padding: 34px;
+}
+
+
+.choose {
+    position: absolute;
+    top: 0px;
+    left: 5px;
+}
+
+.select {
+    position: relative;
+    top: 65px;
+    left: 23px;
+}
+
+
+.title {
+    position: relative;
+    left: 20px;
+    top: 60px;
+}
+
+.input {
+    position: relative;
+    left: 20px;
+    top: 60px;
+}
+
+.header {
+    position: absolute;
+    top: 50px;
+    left: 200px;
+}
+
+.create_btn {
+    position: relative;
+    top: -60px;
+    left: 700px;
+    /* 文字颜色 */
+    color: #0099CC;
+    /* 清除背景色 */
+    background: transparent;
+    /* 边框样式、颜色、宽度 */
+    border: 2px solid #0099CC;
+    /* 给边框添加圆角 */
+    border-radius: 6px;
+    /* 字母转大写 */
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    -webkit-transition-duration: 0.4s;
+    /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.create_btn {
+    background-color: white;
+    color: black;
+    border: 2px solid #008CBA;
+}
+
+/* 悬停样式 */
+.create_btn:hover {
+    background-color: #008CBA;
+    color: white;
+}
+
+
+
+
+.rename {
+    position: fixed;
+    left: 950px;
+}
+
+.open {
+    position: fixed;
+    left: 850px;
+}
+
+.delete {
+    position: fixed;
+    left: 1045px;
+}
+
+
+
+.hr {
+    height: 5px;
+    border: none;
+    border-top: 5px ridge #45D6D8;
+}
+
+.acts {
+    position: relative;
+    left: 400px;
+}
+
+.taskname {
+    float: left;
+}
+
+.foundername {
+    float: left;
+}
+
+.task_name {
+    text-shadow: 0 0 2px hsl(40, 28.57%, 28.82%), 0 0 2px hsl(40, 28.57%, 28.82%), 0 0 2px hsl(40, 28.57%, 28.82%);
+    /*多个叠加*/
+    font-size: 30px;
+    color: rgb(249, 210, 210);
+}
+
+.founder_name {
+    position: relative;
+    left: 40px;
+    font-family: "Arial", "Microsoft YaHei", "黑体", "宋体", sans-serif;
+    color: rgb(241, 180, 99);
+    font-size: 20px;
+}
+
+.time {
+    position: relative;
+    left: 70px;
+}
+
+ul {
+    margin-bottom: 30px;
+}
+
+.background {
+    width: 100%;
+}
+
+#submit-new-proj{
+    position: relative;
+    left: 40%;
+    font-size: 18px;
+}
+
+.language-label{
+    font-size: 20px;
+}

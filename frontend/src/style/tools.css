@@ -1,0 +1,54 @@
+.Left {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translate(0, -50%);
+}
+.debug {
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translate(0, -50%);
+}
+#configForm {
+    display: none;
+    position: fixed;
+    height: 450px;
+    width: 400px;
+    overflow: auto;
+    margin: auto;
+    z-index: 999;
+    border-radius: 20px;
+    background-color: rgb(234, 246, 252);
+    left: -100%;
+    top: 150%;
+    padding: 25px;
+}
+.config-form-button {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+}
+.Monitor {
+    position: relative;
+    z-index: 999;
+    width: 15%;
+    height: 224%;
+    border-radius: 10px;
+    top: 946%;
+    left: 83%;
+    background-color: rgb(234, 246, 252);
+    border:3px solid rgb(184, 203, 222);
+    padding: 5px;
+}
+#AddVariableButton {
+    font-size: 18px;
+    float: right;
+}
+.VariableFormText {
+    color: rgb(70, 92, 136);
+    overflow: hidden;
+    margin-top: 2px;
+    margin-left: 10px;
+}
