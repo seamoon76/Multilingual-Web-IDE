@@ -13,7 +13,9 @@ from flask_sqlalchemy import SQLAlchemy
 import sys
 import time
 import shutil
-from run_order import get_python_run_cmd,get_python_debug_cmd
+from run_order import get_python_run_cmd, get_python_debug_cmd, get_c_run_cmd, get_cpp_run_cmd, get_c_debug_cmd, \
+    get_cpp_debug_cmd
+
 app = Flask(__name__)
 CORS(app)
 
@@ -299,6 +301,10 @@ def get_run_cmd():
         # fullpath = os.path.join(Paths.rootPath, run_config['execpath'])
         # cmd = ' '.join([sys.executable, fullpath, run_config['execargs']])+'\n'
         # print(cmd)
+    elif request.form['language'] == 'c':
+        cmd = get_c_run_cmd(run_config)
+    elif request.form['language'] == 'c++' or request.form['language'] == 'cpp':
+        cmd = get_cpp_run_cmd(run_config)
 
     ################################################
     # you can add new language support here
@@ -320,7 +326,10 @@ def get_debug_cmd():
     cmd = 'cat LANGUAGE_NOT_SUPPORTED'
     if request.form['language'] == 'python':
         cmd = get_python_debug_cmd(run_config)
-
+    elif request.form['language'] == 'c':
+        cmd = get_c_debug_cmd(run_config)
+    elif request.form['language'] == 'c++' or request.form['language'] == 'cpp':
+        cmd = get_cpp_debug_cmd(run_config)
     ################################################
     # you can add new language support here
     # e.g.:

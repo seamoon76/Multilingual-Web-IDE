@@ -47,6 +47,7 @@
             <el-radio label="python" class="language-label"></el-radio>
             <el-radio label="java" class="language-label"></el-radio>
             <el-radio label="c" class="language-label"></el-radio>
+            <el-radio label="c++" class="language-label"></el-radio>
           </el-radio-group>
         </el-form-item>
         <el-button type="success" id="submit-new-proj" @click="submit">提交</el-button>

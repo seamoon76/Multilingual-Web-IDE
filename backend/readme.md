@@ -8,6 +8,7 @@ pip3 install flask
 pip3 install flask_cors
 pip3 install flask_sqlalchemy
 pip3 install flask_socketio
+sudo apt install gdb
 ```
 
 in `backend/tree/config.py`，Specifies `rootPath` of the working directory of the IDE backend, which will be used to store the project. Make sure that the specified path exists.

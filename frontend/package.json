@@ -15,6 +15,7 @@
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.1",
     "stylus-loader": "^7.0.0",
+    "utf-8": "^2.0.0",
     "vue": "^2.6.14",
     "vue-router": "^3.2.0",
     "xterm": "^4.19.0",

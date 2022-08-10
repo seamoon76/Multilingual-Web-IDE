@@ -718,8 +718,10 @@ export default {
       let socket = io.connect("http://127.0.0.1:5003/pty");
 
       socket.on("pty-output", function (data) {
-        console.log("new output received from server:", data.output);
-        that.$refs.debugger.handleOutput(data.output,that)
+        let output=data.output
+        console.log("new output received from server:", output);
+        console.log('lang:'+that.language)
+        that.$refs.debugger.handleOutput(output,that,that.language)
         // //捕获后端发来的串，并处理
         // var output = data.output
         // var last_character = data.output[data.output.length - 2]
@@ -792,7 +794,7 @@ export default {
         return;
       // 初始化
       debug_console._initialized = true;
-
+      socket.emit("pty-input", {input: 'PS1="$"\n'});
     },
 
     createOutputConsole() {
@@ -855,19 +857,25 @@ export default {
       let socket = io.connect("http://127.0.0.1:5002/pty");
 
       socket.on("pty-output", function (data) {
-        console.log("new output received from server:", data.output);
-        //捕获后端发来的串，并处理
         var output = data.output
-        var last_character = data.output[data.output.length - 2]
-        var tmp = data.output.lastIndexOf("\n")
-        if (last_character == '$') {
-          if (tmp != -1) {
-            output = data.output.slice(0, data.output.lastIndexOf("\n") + 1) + "$ "
-          } else {
-            output = data.output.substring(data.output.length - 2)
-          }
+        console.log("new output received from server:", output);
+        //捕获后端发来的串，并处理
+
+        if(output.lastIndexOf('PS1="$"')===-1)
+        {
+          output_console.write(output);
         }
-        output_console.write(output);
+
+        // var last_character = data.output[data.output.length - 2]
+        // var tmp = data.output.lastIndexOf("\n")
+        // if (last_character == '$') {
+        //   if (tmp != -1) {
+        //     output = data.output.slice(0, data.output.lastIndexOf("\n") + 1) + "$ "
+        //   } else {
+        //     output = data.output.substring(data.output.length - 2)
+        //   }
+        // }
+
       });
 
       socket.on("connect", (response) => {
@@ -891,7 +899,7 @@ export default {
         return;
       // 初始化
       output_console._initialized = true;
-
+      socket.emit("pty-input", {input: 'PS1="$"\n'});
     },
 
     //将当前页面切换为输出控制台页面
@@ -956,13 +964,13 @@ export default {
         if (this.currentIndex == -1) {
           let breakpoints = this.$refs.child.getBreakPoints();
           console.log(breakpoints);
-          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints)});
+          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
 
         } else {
           this.createDebugConsole();
           let breakpoints = this.$refs.child.getBreakPoints();
           console.log(breakpoints)
-          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints)});
+          this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
         }
       }).catch(() => {
         console.log("fail");
@@ -978,16 +986,16 @@ export default {
       if (this.debugState === false) {
         return
       }
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_continue_order()});
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_continue_order(this.language)});
+      //this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order(this.language)});
     },
 
     debugNext() {
       if (this.debugState === false) {
         return
       }
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_next_order()});
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_next_order(this.language)});
+      //this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order(this.language)});
     },
 
     debugStepIn() {
@@ -995,8 +1003,8 @@ export default {
         return
       }
       ;
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_in_order()});
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_in_order(this.language)});
+      //this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order(this.language)});
 
     },
 
@@ -1005,8 +1013,8 @@ export default {
         return
       }
       ;
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_out_order()});
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_step_out_order(this.language)});
+      //this.socket.emit("pty-input", {input: this.$refs.debugger.get_line_order(this.language)});
 
     },
 
@@ -1015,7 +1023,7 @@ export default {
         return
       }
 
-      this.socket.emit("pty-input", {input: this.$refs.debugger.get_stop_order()});
+      this.socket.emit("pty-input", {input: this.$refs.debugger.get_stop_order(this.language)});
       this.debugState = false
 
     },

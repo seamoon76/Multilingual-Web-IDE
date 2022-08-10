@@ -34,7 +34,7 @@ def read_and_forward_pty_output(sid):
             timeout_sec = 0
             (data_ready, _, _) = select.select([subprograms[sid]["fd"]], [], [], timeout_sec)
             if data_ready:
-                output = os.read(subprograms[sid]["fd"], max_read_bytes).decode()
+                output = os.read(subprograms[sid]["fd"], max_read_bytes).decode(encoding='UTF-8')
                 socketio.emit("pty-output", {"output": output}, namespace="/pty", to=sid)
         else:
             del subprograms[sid]
@@ -51,7 +51,7 @@ def pty_input(data):
     sid = request.sid
     print(sid)
     if subprograms[sid]["fd"]:
-        os.write(subprograms[sid]["fd"], data["input"].encode())
+        os.write(subprograms[sid]["fd"], data["input"].encode(encoding='UTF-8'))
 
 
 @socketio.on("resize", namespace="/pty")

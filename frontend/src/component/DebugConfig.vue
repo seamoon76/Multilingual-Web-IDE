@@ -5,6 +5,9 @@
 </template>
 
 <script>
+import UTF8 from "utf-8";
+
+
 export default {
   name: "DebugConfig",
   data(){
@@ -15,79 +18,214 @@ export default {
 
 
   methods: {
-    get_set_breakpoints_order(breakpointslist = []) {
+    get_set_breakpoints_order(breakpointslist = [],language) {
       let order = ''
-      for (let i = 0; i < breakpointslist.length; i++) {
-        order = order + 'b ' + breakpointslist[i] + '\n'
+      if(language==='python') {
+
+        for (let i = 0; i < breakpointslist.length; i++) {
+          order = order + 'b ' + breakpointslist[i] + '\n'
+        }
+
       }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        for (let i = 0; i < breakpointslist.length; i++) {
+          order = order + 'break ' + breakpointslist[i] + '\n'
+        }
+      }
+        return order
+    },
+    start(language)
+    {
+      let order = ''
+      if(language==='c'||language==='cpp'||language==='c++') {
+        order=order+'start\n'
+      }
+      else if(language==='python')
+      {
+        order = order+'c\n'
+      }
+
       return order
     },
-    get_continue_order() {
-      return 'c\n'
+    get_continue_order(language) {
+      if(language==='python') {
+        return 'c\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'c\n'
+      }
     },
-    get_next_order() {
-      return 'n\n'
+    get_next_order(language) {
+
+      if(language==='python') {
+        return 'n\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'next\n'
+
+      }
     },
-    get_step_in_order() {
-      return 's\n'
+    get_step_in_order(language) {
+
+      if(language==='python') {
+        return 's\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'step\n'
+
+      }
     },
-    get_step_out_order() {
-      return 'return\n'
+    get_step_out_order(language) {
+      if(language==='python') {
+        return 'return\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'finish\n'
+      }
     },
-    get_stop_order() {
-      return 'quit\n'
+    get_stop_order(language) {
+      if(language==='python') {
+        return 'q\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'quit\ny\n'
+      }
+
     },
-    get_line_order() {
-      return 'line\n'+'{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
+    get_line_order(language) {
+      if(language==='python') {
+        return 'line\n'+'{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+        return 'where\n'+'info locals\n'
+      }
+
     },
-    get_locals(){
-      return '{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
+    get_locals(language){
+      if(language==='python') {
+        return '{k:v for k,v in locals().items() if \'__\' not in k and \'pdb\' not in k}\n'
+      }
+      else if(language==='c'||language==='cpp'||language==='c++'){
+
+      }
+
     },
-    handleOutput(data_output,this_pointer){
-      let output=data_output
-      // var lineno=1
-      var last_character = data_output[data_output.length - 2]
-        var tmp = data_output.lastIndexOf("\n")
-        if (last_character == '$') {
-          if (tmp != -1) {
-            output = data_output.slice(0, data_output.lastIndexOf("\n") + 1) + "$ "
-          } else {
-            output = data_output.substring(data_output.length - 2)
+    utf8To16(input) {
+                var _escape = function(s) {
+                    function q(c) {
+                        c = c.charCodeAt();
+                        return '%' + (c<16 ? '0' : '') + c.toString(16).toUpperCase();
+                    }
+                    return s.replace(/[\x00-),:-?[-^`{-\xFF]/g, q);
+                };
+                try{
+                    return decodeURIComponent(_escape(input));
+                }catch (URIError) {
+                    //include invalid character, cannot convert
+                    return input;
+                }
+            },
+    handleOutput(data_output,this_pointer,language) {
+      if (language === 'python') {
+        let output = data_output
+        if (output.lastIndexOf('PS1="$"') !== -1) {
+          this_pointer.debug_console.write('$');
+          return
+        }
+
+        // var lineno=1
+        //var last_character = data_output[data_output.length - 2]
+        //var tmp = data_output.lastIndexOf("\n")
+        // if (last_character == '$') {
+        //   if (tmp != -1) {
+        //     output = data_output.slice(0, data_output.lastIndexOf("\n") + 1) + "$ "
+        //   } else {
+        //     output = data_output.substring(data_output.length - 2)
+        //   }
+        // }
+        //console.log('data_output.indexOf(".end"):'+data_output.indexOf(".end"))
+        if(data_output.endsWith("(my-pdb)") && data_output.indexOf(".end")==-1)
+        {
+          this_pointer.debug_console.write(output);
+          //console.log(133)
+          this_pointer.socket.emit("pty-input", {input: this.get_line_order(language)});
+          //console.log(135)
+
+        }
+        else if(data_output.indexOf(".end")!=-1)//返回了行号和变量
+        {
+          let tmp_idx = data_output.lastIndexOf("lineno:")
+        let tmp_idx_num_end = data_output.lastIndexOf(".end")
+        let left_idx_locals = data_output.lastIndexOf("{")
+        let right_idx_locals = data_output.lastIndexOf("}")
+        if (tmp_idx !== -1 && tmp_idx_num_end !== -1) {
+          try {
+            let line_no = parseInt(data_output.substring(tmp_idx + 7, tmp_idx_num_end));
+            this_pointer.$refs.child.changeline(line_no);
+            // console.log('change line to ' + line_no)
+          } catch (e) {
+            console.error(e)
+          }
+          if (left_idx_locals !== -1 && right_idx_locals !== -1) {
+            let local_variables = data_output.substring(left_idx_locals, right_idx_locals + 1);
+            if (local_variables.lastIndexOf('{k:v for )') === -1) {
+              this_pointer.monitoredVariables = local_variables;
+            }
+
+          }
+        } else if (left_idx_locals !== -1 && right_idx_locals !== -1) {
+          let local_variables = data_output.substring(left_idx_locals, right_idx_locals + 1);
+          if (local_variables.lastIndexOf('{k:v for )') === -1) {
+            this_pointer.monitoredVariables = local_variables;
           }
         }
-        let tmp_idx_begin=data_output.lastIndexOf("[my-pdb]")
+        }
+        else {
+          this_pointer.debug_console.write(output);
+        }
+      }
+    else if(language==='c'||language==='cpp'||language==='c++'){
+      let output = data_output
+        // if (output.lastIndexOf('PS1="$"') === -1) {
+        //   return
+        // }
+        if (output.lastIndexOf('PS1="$"') !== -1) {
+          this_pointer.debug_console.write('$');
+          return
+        }
+        let re = /#.*(\.c|\.cpp|\.h|\.hpp).*\d+/;
 
+        if(data_output.endsWith("(gdb) ") && data_output.search("exited normally")==-1 && data_output.search(re)==-1)
+        {
+          this_pointer.debug_console.write(output);
+          this_pointer.socket.emit("pty-input", {input: this.get_line_order(language)});
 
-          let tmp_idx = data_output.lastIndexOf("lineno:")
-          let tmp_idx_num_end = data_output.lastIndexOf(".end")
-          let left_idx_locals = data_output.lastIndexOf("{")
-          let right_idx_locals = data_output.lastIndexOf("}")
-          if (tmp_idx !== -1 && tmp_idx_num_end !== -1) {
-            try {
-              let line_no = parseInt(data_output.substring(tmp_idx + 7, tmp_idx_num_end));
-              this_pointer.$refs.child.changeline(line_no);
-              // console.log('change line to ' + line_no)
-            } catch (e) {
-              console.error(e)
-            }
-            if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-              let local_variables = data_output.substring(left_idx_locals, right_idx_locals + 1);
-              if(local_variables.lastIndexOf('{k:v for )')===-1) {
-                this_pointer.monitoredVariables = local_variables;
-              }
-
-            }
+        }
+        else if(data_output.endsWith("(gdb) ") && data_output.search("exited normally")==-1 && data_output.search(re)>0)//返回了行号和变量
+        {
+          let tmp_idx = data_output.search(/(\.c|\.cpp|\.h|\.hpp).*\d+/)
+          let line_num=data_output.substring(tmp_idx+2,tmp_idx+10).replace(/[^0-9]/ig,"")
+          try {
+            let line_no = parseInt(line_num);
+            this_pointer.$refs.child.changeline(line_no);
+          } catch (e) {
+            console.error(e)
           }
-          else if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-              let local_variables = data_output.substring(left_idx_locals, right_idx_locals + 1);
-              if(local_variables.lastIndexOf('{k:v for )')===-1) {
-                this_pointer.monitoredVariables = local_variables;
-              }
+          let str_locals = data_output.match(/locals\s([\s\S]*)\(gdb\)/)[1]
 
-            }
-          else {
-            this_pointer.debug_console.write(output);
+          if (data_output.match(/locals\s([\s\S]*)\(gdb\)/)!=null) {
+            // let b=utf8.encode(str_locals)
+            // console.log(b)
+            //let bytes_array=UTF8.setBytesFromString(str_locals);
+            let u16=this.utf8To16(str_locals)
+            console.log(u16)
+              this_pointer.monitoredVariables = u16
           }
+        }
+        else {
+          this_pointer.debug_console.write(output);
+        }
+      }
     }
 }
 }

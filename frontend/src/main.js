@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 //导入elementUI
 import ElementUI from "element-ui"
+import UTF8 from 'utf-8'
 //导入element css
 import 'element-ui/lib/theme-chalk/index.css'
 import VueRouter from 'vue-router';
@@ -12,6 +13,7 @@ import editor from "@/component/editor";
 
 Vue.use(ElementUI)
 Vue.use(VueRouter)
+Vue.use(UTF8)
 Vue.config.productionTip = false
 
 const routes = [

@@ -9,7 +9,7 @@ class Mypdb(Pdb):
     def __init__(self, *args, **kwargs):
         super(Mypdb, self).__init__(*args, **kwargs)
         self._user_requested_quit = False
-        self.prompt = "[my-pdb] "
+        self.prompt = "(my-pdb)"
 
     def do_line(self, arg: str) -> bool:
         self.lastcmd = 'line'
