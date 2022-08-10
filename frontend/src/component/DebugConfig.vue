@@ -194,8 +194,16 @@ export default {
           return
         }
         let re = /#.*(\.c|\.cpp|\.h|\.hpp).*\d+/;
+        if(data_output.search("exited")!==-1)
+        {
+          this_pointer.debugState=false;
+          this_pointer.$refs.child.changeline(1);
+          this_pointer.debug_console.write('$ exited');
+          return
+        }
 
-        if(data_output.endsWith("(gdb) ") && data_output.search("exited normally")==-1 && data_output.search(re)==-1)
+
+        if(data_output.endsWith("(gdb) ") && data_output.search("exited normally")==-1 && data_output.search(re)==-1 && this_pointer.debugState)
         {
           this_pointer.debug_console.write(output);
           this_pointer.socket.emit("pty-input", {input: this.get_line_order(language)});
@@ -217,9 +225,11 @@ export default {
             // let b=utf8.encode(str_locals)
             // console.log(b)
             //let bytes_array=UTF8.setBytesFromString(str_locals);
-            let u16=this.utf8To16(str_locals)
-            console.log(u16)
-              this_pointer.monitoredVariables = u16
+            // let u16=this.utf8To16(str_locals)
+            // console.log(u16)
+            //   this_pointer.monitoredVariables = u16
+            str_locals = str_locals.replace(/.\[(3\d)?m/g,"")
+            this_pointer.monitoredVariables = str_locals
           }
         }
         else {
