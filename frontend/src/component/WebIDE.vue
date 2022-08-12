@@ -721,8 +721,8 @@ export default {
       let socket = io.connect("http://127.0.0.1:5003/pty");
 
       socket.on("pty-output", function (data) {
-        //let output=data.output
-        let output=that.$refs.debugger.utf8To16(data.output)
+        let output=data.output
+        //let output=that.$refs.debugger.utf8To16(data.output)
             // console.log(u16)
         console.log("new output received from server:", output);
         console.log('lang:'+that.language)

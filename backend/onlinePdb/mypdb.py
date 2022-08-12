@@ -1,3 +1,4 @@
+import os
 import sys
 from pdb import Pdb
 
@@ -16,11 +17,35 @@ class Mypdb(Pdb):
         last = None
         lineno=self.curframe.f_lineno
 
+
         filename = self.curframe.f_code.co_filename
         breaklist = self.get_file_breaks(filename)
         self.message('lineno:'+str(lineno)+'.end')
 
     do_ln=do_line
+
+    def do_getframe(self, arg: str)->bool:
+        import os
+        import json
+        self.lastcmd = 'getframe'
+        filename = self.curframe.f_code.co_filename
+        dirpath = os.path.dirname(os.path.abspath(filename))+os.path.sep,
+        lineno = self.curframe.f_lineno
+        breakpoints = self.get_file_breaks(filename),
+        local_v = self.curframe_locals
+        local_dict = {k:v for k,v in local_v.items() if '__' not in k and 'pdb' not in k}
+
+        frame =  dict()
+        frame['dirpath']=str(dirpath).lstrip('(\'').rstrip('\',)')
+        frame['filename']=str(os.path.basename(filename))
+        frame['lineno']=str(lineno)
+        frame['breakpoints']= breakpoints # str(breakpoints).lstrip('([').rstrip('],)')
+        frame['locals']=str(local_dict)
+
+        self.message('frame:'+str(json.dumps(frame))+'.frameEnd')
+
+    do_frame = do_getframe
+
 
 
 def stop():

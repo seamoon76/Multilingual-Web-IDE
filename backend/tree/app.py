@@ -359,6 +359,18 @@ def get_file():
     f = open(fileFullPath, 'rb')
     return f.read()
 
+# 从后端获取文件
+@app.route('/get-full-path-file', methods=['POST'])
+def get_full_path_file():
+    if request.form['filefullpath']:
+        fileFullPath = request.form['filefullpath']
+        f = open(fileFullPath, 'rb')
+        return f.read()
+    else:
+        print('cannot find file')
+        return None
+
+
 
 def set_run_config(execname, execpath, execargs):
     run_config['execname'] = execname

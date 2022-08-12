@@ -320,7 +320,7 @@ export default {
       this.theme = val
     },
 
-    // 读入文件
+    // 以项目路径为根节点，读入文件
     uploadCode(path,file = 'main.py') {
       //if (this.extname==='py'||this.extname==='js'||this.extname==='cpp'){
       //   this.downloadCode()
@@ -402,6 +402,83 @@ export default {
                   }
                 }
               }
+            }
+          })
+    },
+    // 调试时以全路径打开文件
+    uploadCodeFullPath(dirpath,file = 'main.py',breaklist,line_no) {
+      //if (this.extname==='py'||this.extname==='js'||this.extname==='cpp'){
+      //   this.downloadCode()
+      // }
+      let _that = this
+      //this.path = path;
+      var form=new FormData()
+      let num = file.split('.')
+      let ext= num[num.length - 1]
+      if(num.length <= 1) {
+        this.$message({
+          message: '请检查调试跳转到的文件是否是符合标准的文件',
+          type: 'warning'
+        });
+        return;
+      }
+      if (ext === 'py') {
+        // 修改codemirror的语法类型
+        this.changeMode('x-python')
+      }
+      else if (ext === 'js') {
+        this.changeMode('javascript')
+      }
+      else if (ext === 'cpp'||ext === 'h'||ext === 'c') {
+        this.changeMode('x-objectivec')
+      }
+      else if (ext === 'md') {
+        this.changeMode('markdown')
+      }
+      else if (ext === 'r') {
+        this.changeMode('x-rsrc')
+      }
+      else if (ext === 'css') {
+        this.changeMode('css')
+      }
+      else if (ext === 'html') {
+        this.changeMode('html')
+      }
+      else if (ext === 'sh') {
+        this.changeMode('x-sh')
+      }
+      else if (ext === 'sql') {
+        this.changeMode('x-sql')
+      }
+      else{
+        this.changeMode('')
+      }
+      this.extname = ext
+      this.filename = file
+      this.show1 = 1
+      console.log('success');
+      form.append('filefullpath', dirpath+this.filename); // 通过append向form对象添加数据
+
+      axios.post('/get-full-path-file',form, {
+        responseType: 'blob',
+      })
+          .then((res) => {
+            let blob_data=res.data;
+            const reader = new FileReader()
+            reader.readAsText(blob_data,'utf-8')
+            reader.onload = function () {
+              //当读取完成后回调这个函数,然后此时文件的内容存储到了result
+              _that.code = this.result
+              _that.coder.setValue(_that.code)
+              //获取文件的断点和光标位置，需要放在更改完文件内容之后
+              var linenum = line_no
+              _that.coder.setCursor({line:linenum,ch:0})
+              _that.breakpoints = breaklist
+              let j = 0;
+                  for(j;j<_that.breakpoints.length;j++){
+                    var n =parseInt(_that.breakpoints[j]) - 1
+                    _that.coder.setGutterMarker(n, "breakpoints", _that.makeMarker(n));
+                  }
             }
           })
     },
