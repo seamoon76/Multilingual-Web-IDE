@@ -1,5 +1,6 @@
 # backend
 
+**run on linux or macos, if your OS is Windows, you can use WSL**
 
 ## prepare
 

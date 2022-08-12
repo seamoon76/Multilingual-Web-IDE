@@ -403,12 +403,14 @@ export default {
         var data = Qs.stringify({path: this.getPath(), oldFileName: this.optionData.label, newFileName: value});
         axios.post('/rename', data, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(res => {
           if (res.data == '1') {
-            console.log('success');
+            console.log('rename success');
+            this.getData()
             this.optionData.label = value
             this.$message({
               type: 'success',
               message: '重命名成功！'
             });
+
           } else {
             console.log('qaq');
             this.$message({
