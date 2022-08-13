@@ -61,13 +61,13 @@ import 'codemirror/keymap/sublime.js';
 import "codemirror/addon/selection/active-line.js";
 //代码补全提示
 import 'codemirror/addon/hint/anyword-hint.js';
-import 'codemirror/addon/hint/javascript-hint.js';
+import '../hint/javascript-hint.js';
 import 'codemirror/addon/hint/show-hint.css';
 import 'codemirror/addon/hint/xml-hint.js';
 import 'codemirror/addon/hint/sql-hint.js';
 import 'codemirror/addon/hint/html-hint.js';
 import 'codemirror/addon/hint/css-hint.js';
-import 'codemirror/addon/hint/show-hint.js';
+import '../hint/show-hint.js';
 //自动补全括号，且光标在括号左右侧时，自动突出匹配的括号
 import 'codemirror/addon/edit/matchbrackets'
 import 'codemirror/addon/edit/closebrackets'
@@ -90,6 +90,7 @@ import {Pos} from "codemirror/src/line/pos";
 
 // 获取全局实例
 const CodeMirror = window.CodeMirror || _CodeMirror
+CodeMirror.ukeys = []
 
 export default {
   props: {
@@ -296,8 +297,15 @@ export default {
       this.coder.on("inputRead", (cm, obj) => {
         if (obj.text && obj.text.length >0) {
           let c = obj.text[0][obj.text[0].length - 1]
-          if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+          if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_')) {
             this.coder.execCommand("autocomplete");
+            // 动态提示
+            // 获取用户当前的编辑器中的编写的代码
+            var words = cm.getValue() + "";
+            // 利用正则取出用户输入的全部以英文字母或下划线开头，由数字、英文字母、下划线组成的单词
+            words = words.replace(/[a-z]+[\-|\']+[a-z0-9]+/ig, '').match(/([_a-z0-9]+)/ig);
+            // 将获取到的用户的单词传入CodeMirror,并在所有hint文件中做匹配
+            CodeMirror.ukeys = words;
             cm.showHint({ completeSingle:false });
           }
         }
