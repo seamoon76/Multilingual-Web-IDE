@@ -13,7 +13,7 @@ sudo apt install gdb
 ```
 
 in `backend/tree/config.py`，Specifies `rootPath` of the working directory of the IDE backend, which will be used to store the project. Make sure that the specified path exists.
-
+Specifies `backendRootPath`.
 ```
 class Paths():
     rootPath = '/mnt/d/workspace'

@@ -171,8 +171,8 @@ export default {
             } catch (e) {
               console.error(e)
             }
-
-          } else if (data_output.indexOf(".end") != -1)//返回了行号
+          }
+        } else if (data_output.indexOf(".end") != -1)//返回了行号
           {
             let tmp_idx = data_output.lastIndexOf("lineno:")
             let tmp_idx_num_end = data_output.lastIndexOf(".end")
@@ -252,7 +252,7 @@ export default {
         }
       }
     }
-  }
+
 }
 </script>
 

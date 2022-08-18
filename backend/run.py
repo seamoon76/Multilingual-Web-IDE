@@ -1,7 +1,7 @@
 import multiprocessing
 import os
 import sys
-
+from tree.config import Paths
 
 def run_backend(filepath:str):
     os.system(sys.executable + ' ' +filepath)
@@ -9,7 +9,7 @@ def run_backend(filepath:str):
 
 
 if __name__ == "__main__":
-    backend_file_paths = [os.path.abspath('.') + os.path.sep + f for f in ['tree/app.py', 'webIdeXterm.py', 'debug_console.py', 'output_console.py']]
+    backend_file_paths = [Paths.backendRootPath + os.path.sep + f for f in ['tree/app.py', 'webIdeXterm.py', 'debug_console.py', 'output_console.py']]
     for path in backend_file_paths:
         if os.path.exists(path) is not True:
             print('cannot find ' + path)
