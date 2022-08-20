@@ -672,10 +672,18 @@ export default {
 
     createDebugConsole() {
       let that=this
+      if(that.currentIndex===-2||that.output_console_num!==0)
+      {
+        // 输出控制台还开着，关闭
+              //console.log(810)
+        that.closeOutputConsole()
+      }
       if (this.console_num > 0) {
+              //console.log(818)
+        this.changeToConsole()
         return
       }
-      // todo:不确定要不要关闭output窗口，也就是说在调试的时候要不要关闭运行的那个窗口
+
       //定义console类型（terminal改动一下）
       let debug_console = new Terminal({
         rendererType: "canvas",
@@ -803,20 +811,26 @@ export default {
     },
 
     createOutputConsole() {
-      if (this.output_console_num > 0) {
-        return
-      }
       let that = this
-
-      if(that.currentIndex===-1)
+      if(that.currentIndex===-1||that.console_num!==0)
       {
         // 调试控制台还开着，关闭
+              //console.log(810)
         if(that.debugState===true)
         {
           that.stopDebuging()
         }
         that.closeConsole()
       }
+      if (this.output_console_num > 0) {
+              //console.log(818)
+        this.changeToOutputConsole()
+        return
+      }
+
+
+
+
       //定义console类型（terminal改动一下）
       let output_console = new Terminal({
         rendererType: "canvas",
@@ -1074,6 +1088,7 @@ export default {
         console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -2) {
+          //console.log(1083)
           this.socket.emit("pty-input", {input: res.data.cmd});
         } else {
           this.createOutputConsole();

@@ -9,6 +9,7 @@ pip3 install flask
 pip3 install flask_cors
 pip3 install flask_sqlalchemy
 pip3 install flask_socketio
+pip3 install psutil
 sudo apt install gdb
 ```
 
