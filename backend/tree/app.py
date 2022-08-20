@@ -227,7 +227,7 @@ def new_project():
         log_path = os.path.join(Paths.rootPath, save_path, 'task_log.log')
         with open(log_path, 'a') as f:
             f.write('Time:' + str(last_modify_time) + ',FounderName:' + str(
-                foundername) + ',Create this task,TaskName:' + str(taskname) + '.\n')
+                foundername) + ',Create this project,ProjectName:' + str(taskname) + '.\n')
         if not taskname or not foundername or not last_modify_time or len(last_modify_time) > 20 or len(
                 taskname) > 60 or len(foundername) > 20:
             return json.dumps('error')
@@ -274,7 +274,7 @@ def rename_project():
         project.time = time
         log_path = project.log_path
         with open(log_path, 'a') as f:
-            f.write('Time:' + str(time) + ',this task has been renamed. Oldname:' + str(oldname) + ',Newname:' + str(
+            f.write('Time:' + str(time) + ',this project has been renamed. Oldname:' + str(oldname) + ',Newname:' + str(
                 newName) + '.\n')
         db.session.commit()  # 提交数据库会话
         return json.dumps('1')
@@ -293,7 +293,7 @@ def open_project():
         time = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         log_path = project.log_path
         with open(log_path, 'a') as f:
-            f.write('Time:' + str(time) + ',this task has been opened.\n')
+            f.write('Time:' + str(time) + ',this project has been opened.\n')
         project_path = str(project.path)
         return json.dumps({'path': project_path})
     return json.dumps('error')

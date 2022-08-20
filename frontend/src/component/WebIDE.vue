@@ -806,17 +806,17 @@ export default {
       if (this.output_console_num > 0) {
         return
       }
-      // let that = this
+      let that = this
 
-      // if(that.currentIndex===-1)
-      // {
-      //   // 调试控制台还开着，关闭
-      //   if(that.debugState===true)
-      //   {
-      //     that.stopDebuging()
-      //   }
-      //   that.closeConsole()
-      // }
+      if(that.currentIndex===-1)
+      {
+        // 调试控制台还开着，关闭
+        if(that.debugState===true)
+        {
+          that.stopDebuging()
+        }
+        that.closeConsole()
+      }
       //定义console类型（terminal改动一下）
       let output_console = new Terminal({
         rendererType: "canvas",

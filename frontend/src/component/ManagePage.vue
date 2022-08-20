@@ -5,13 +5,15 @@
       <div class="header">
         <h1>全部项目</h1>
         {{ projects.length }}个项目
-        <el-button type="primary" @click="show" class="create_btn">New Project</el-button>
+        <el-button type="primary" @click="show" class="create_btn">新建项目</el-button>
         <div class="project_list">
           <ul v-for="(project,idx) in projects" :key="idx">
             <li>
               <span class="task_name">{{ project.taskname }}</span>
               <span class="founder_name">{{ project.foundername }}</span>
-              <span class="time">{{ project.time }}</span>
+<!--              <span class="time">{{ project.time }}</span>-->
+              <span class="language">{{ project.language }}</span>
+
               <span class="acts">
                 <el-button type="success" class="open" @click="open(project.id)">打开项目</el-button>
                 <el-button type="primary" class="rename" @click="rename(project.id, project.taskname)">重命名</el-button>
@@ -45,7 +47,7 @@
         <el-form-item>
           <el-radio-group v-model="form.language">
             <el-radio label="python" class="language-label"></el-radio>
-            <el-radio label="java" class="language-label"></el-radio>
+<!--            <el-radio label="java" class="language-label"></el-radio>-->
             <el-radio label="c" class="language-label"></el-radio>
             <el-radio label="c++" class="language-label"></el-radio>
           </el-radio-group>

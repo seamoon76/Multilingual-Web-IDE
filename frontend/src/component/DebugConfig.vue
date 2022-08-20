@@ -139,13 +139,22 @@ export default {
         //   }
         // }
         //console.log('data_output.indexOf(".end"):'+data_output.indexOf(".end"))
-        if (data_output.endsWith("(my-pdb)") && data_output.indexOf(".frameEnd") == -1 && data_output.indexOf(".end") == -1) {
+        if(data_output.indexOf("will be restarted")!==-1)
+        {
+          let info_index=data_output.indexOf("The program finished");
+          let info=data_output.substring(0,info_index)
+          this_pointer.debug_console.write(info)
+          this_pointer.debug_console.write("\nThe program finished.\n");
+          this_pointer.stopDebuging();
+          return
+        }
+        else if (data_output.endsWith("(my-pdb)") && data_output.indexOf(".frameEnd") == -1 && data_output.indexOf(".end") == -1 && this_pointer.debugState) {
           this_pointer.debug_console.write(output);
           //console.log(133)
           this_pointer.socket.emit("pty-input", {input: this.get_frame(language)});
           //console.log(135)
 
-        } else if (data_output.indexOf(".frameEnd") != -1)//返回了frame
+        } else if (data_output.indexOf(".frameEnd") != -1 && this_pointer.debugState)//返回了frame
         {
           let tmp_idx = data_output.lastIndexOf("frame:")
           let tmp_idx_num_end = data_output.lastIndexOf(".frameEnd")
@@ -172,7 +181,7 @@ export default {
               console.error(e)
             }
           }
-        } else if (data_output.indexOf(".end") != -1)//返回了行号
+        } else if (data_output.indexOf(".end") != -1 && this_pointer.debugState)//返回了行号
           {
             let tmp_idx = data_output.lastIndexOf("lineno:")
             let tmp_idx_num_end = data_output.lastIndexOf(".end")
@@ -199,7 +208,7 @@ export default {
                 this_pointer.monitoredVariables = local_variables;
               }
             }
-          } else {
+          } else if(this_pointer.debugState){
             this_pointer.debug_console.write(output);
           }
         } else if (language === 'c' || language === 'cpp' || language === 'c++') {
@@ -224,7 +233,7 @@ export default {
             this_pointer.debug_console.write(output);
             this_pointer.socket.emit("pty-input", {input: this.get_line_order(language)});
 
-          } else if (data_output.endsWith("(gdb) ") && data_output.search("exited normally") == -1 && data_output.search(re) > 0)//返回了行号和变量
+          } else if (data_output.endsWith("(gdb) ") && data_output.search("exited normally") == -1 && data_output.search(re) >= 0)//返回了行号和变量
           {
             let tmp_idx = data_output.search(/(\.c|\.cpp|\.h|\.hpp).*\d+/)
             let line_num = data_output.substring(tmp_idx + 2, tmp_idx + 10).replace(/[^0-9]/ig, "")
@@ -235,6 +244,15 @@ export default {
               console.error(e)
             }
             let str_locals = data_output.match(/locals\s([\s\S]*)\(gdb\)/)[1]
+            let split_strs=str_locals.split("\n");
+            for(let i=0;i<split_strs.length;i++){
+
+              if(split_strs[i].indexOf("__")!==-1)
+              {
+                //console.log(split_strs[i])
+                str_locals=str_locals.replace(split_strs[i],"")
+              }
+            }
 
             if (data_output.match(/locals\s([\s\S]*)\(gdb\)/) != null) {
               // let b=utf8.encode(str_locals)
@@ -243,10 +261,17 @@ export default {
               // let u16=this.utf8To16(str_locals)
               // console.log(u16)
               //   this_pointer.monitoredVariables = u16
-              str_locals = str_locals.replace(/.\[(3\d)?m/g, "")
+              if(language=='c')
+              {
+                str_locals=str_locals.replace(/.\[(3\d)?m/g, "")
+              }
+              else {
+                str_locals = str_locals.replace(/.\[(3\d)?m/g, "")
+              }
               this_pointer.monitoredVariables = str_locals
+              //console.log("monitoredVariables:",this_pointer.monitoredVariables)
             }
-          } else {
+          } else if(output!=="where"){
             this_pointer.debug_console.write(output);
           }
         }

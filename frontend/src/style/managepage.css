@@ -148,6 +148,11 @@
     left: 70px;
 }
 
+.language{
+    position: relative;
+    left: 110px;
+}
+
 ul {
     margin-bottom: 30px;
 }
