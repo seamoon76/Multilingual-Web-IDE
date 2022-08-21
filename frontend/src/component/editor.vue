@@ -1,23 +1,32 @@
 <template>
-  <div class="in-coder-panel" :style="{fontSize: myfontSize+'px', lineHeight: lineHighValue}">
+  <div class="in-coder-panel"  >
     <div class="code_top">
-      <button class="filename" v-if="show1==1">
-        {{filename}}
-        <button class="close" @click="closeCode"><a>&#10005;</a></button>
+      <button class="filename" @click="openCode(tab.id)" v-for="tab in tabs" v-show="tab.show===1" :style="{backgroundColor: changeColor(tab.read)}">
+        {{tab.openedFileName}}
+        <button class="close" @click="closeCode(tab.id)" :style="{backgroundColor: changeColor(tab.read)}"><a>&#10005;</a></button>
       </button>
       <el-select  class="code-theme-select" v-model="theme" @change="changetheme">
         <el-option v-for="theme in themes" :key="theme.value" :label="theme.label" :value="theme.value">
         </el-option>
       </el-select>
-      <el-input  class="code-font-size" v-model.number="myfontSize" @input="myfontSize = limitValue(myfontSize)" placeholder="12"></el-input>
+      <el-input  class="code-font-size" v-model.number="myfontSize" @input="myfontSize = limitValue(myfontSize)" placeholder="14"></el-input>
       <button class="code-font-size-minus" @click="valueMinus"><a class="minus-text">-</a></button>
       <button class="code-font-size-add" @click="valueAdd"><a class="minus-text">+</a></button>
       <button @click="downloadCode" style="position:absolute; height: 23px;right: 20px;">保存</button>
-
     </div>
-    <textarea ref="textarea">
+    <div class="place-holder" v-show="tabs[0].show===0">
+      <div class="text-box" >
+        <ul class="user-hint">
+          <li>右键点击文件树创建新文件</li>
+          <li>&emsp;</li>
+          <li>Ctrl+C &nbsp; 复制 &emsp;Ctrl+V &nbsp; 粘贴</li>
+          <li>Ctrl+Z &nbsp; 撤回 &emsp;Ctrl+S &nbsp; 保存</li>
+          <li></li>
+        </ul>
+        </div>
+    </div>
+    <div class="coder-area" :style="{fontSize: myfontSize+'px', lineHeight: lineHighValue}"><textarea ref="text"></textarea></div>
 
-    </textarea>
   </div>
 </template>
 
@@ -26,6 +35,7 @@
 
 // 引入全局实例
 import _CodeMirror from 'codemirror'
+
 // 核心样式
 import 'codemirror/lib/codemirror.css'
 // 引入主题
@@ -34,7 +44,6 @@ import 'codemirror/theme/3024-night.css'
 import 'codemirror/theme/idea.css'
 import 'codemirror/theme/panda-syntax.css'
 import 'codemirror/theme/zenburn.css'
-import 'codemirror/theme/darcula.css'
 import 'codemirror/theme/paraiso-light.css'
 import 'codemirror/theme/rubyblue.css'
 
@@ -84,7 +93,7 @@ import 'codemirror/addon/scroll/annotatescrollbar.js'
 import 'codemirror/addon/search/matchesonscrollbar.js'
 import 'codemirror/addon/search/match-highlighter.js'
 import axios from "axios";
-import {Pos} from "codemirror/src/line/pos";
+//import {Pos} from "codemirror/src/line/pos";
 
 
 
@@ -104,17 +113,20 @@ export default {
   },
   data () {
     return {
-      filelist : [], //存储曾打开过的文件路径对应的断点、光标位置
+      rootPath:'',//从后端获取文件根目录
+      filelist : [], //存储曾打开过的文件路径对应的断点光标位置
+      fileStack: [], //存储最近点击文件
+      closetab: 7,  //刚刚关闭的文件标签
       breakpoints : [],   // 断点
-      show1: 0, //文件名显示
-      myfontSize: 12,//字体大小
+      myfontSize: 14,//字体大小
       filename:'',   // 文件名
       extname:'',   // 文件后缀
       path:'',  //路径
       lineCurrent: 0, //当前行,行号从1开始
       runLineCurrent:0,
       code: '',   // 内部真实的内容
-      mode: 'x-python',   // 默认的语法类型
+      mode: '',   // 默认的语法类型
+      theme: 'elegant',   // 默认的主题
       coder: null,  // 编辑器实例
       options: {
         tabSize: 6,   // 缩进格式
@@ -167,15 +179,63 @@ export default {
         value: 'zenburn',
         label: 'gray'
       },{
-        value: 'darcula',
-        label: 'darcula'
-      },{
         value: 'paraiso-light',
         label: 'yellow',
       },{
         value: 'rubyblue',
         label: 'blue'
       },
+      ],
+      tabs:[
+        {
+          id:0,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
+        {
+          id:1,
+          openedFileName: '',
+          openedFullFilePath:'',
+          show:0,
+          read:0,
+        },
+        {
+          id:2,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
+        {
+          id:3,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
+        {
+          id:4,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
+        {
+          id:5,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
+        {
+          id:6,
+          openedFileName: '',//存储打开的文件名
+          openedFullFilePath:'', //存储打开的（文件名+路径）
+          show:0,
+          read:0,
+        },
       ],
     }
   },
@@ -188,16 +248,26 @@ export default {
 
   },
   computed: {
-    lineHighValue: function() {
-      if(this.myfontSize>12){
-        return (this.myfontSize+7) + 'px'
-      }
-      else{
+    lineHighValue: function () {
+      if (this.myfontSize > 12) {
+        return (this.myfontSize + 7) + 'px'
+      } else {
         return '19px'
       }
-    }
     },
+  },
   methods: {
+    //
+
+    // 文件标签背景颜色改变
+    changeColor(val){
+      if(val===0){
+        return '#E0E0E0'
+      }
+      else {
+        return '#f5f5f5'
+      }
+    },
     // 字体大小限制
     limitValue(val){
       if(val>25){
@@ -220,8 +290,24 @@ export default {
         this.myfontSize = this.myfontSize-1
     },
     // 跳至调试所在行，并改变该行背景颜色
-    changeline(val,error = false){
+    changeline(val,changeFile = false,error = false){
+      if(changeFile !== false){
+        //console.log("打开了新的文件,高亮行为"+val)
+        this.coder.setCursor({line:val-1,ch:0})
+        this.coder.setCursor({line:val-1,ch:0})
+        if(error === false){
+          this.coder.addLineClass(val-1,"background","myLineHighlight")
+        }else{
+          this.coder.addLineClass(val-1,"background","errorLineHighlight")
+        }
+        this.runLineCurrent = val;
+        return;
+      }
+      this.coder.setCursor({line:val-1,ch:0})
+      this.coder.setCursor({line:val-1,ch:0})
+      //console.log("跳至调试所在行，并改变该行背景颜色")
       if(this.runLineCurrent!==0){
+       // console.log("changeline:"+this.runLineCurrent)
         this.coder.removeLineClass(this.runLineCurrent-1,"background","myLineHighlight")
         this.coder.removeLineClass(this.runLineCurrent-1,"background","errorLineHighlight")
       }
@@ -230,24 +316,46 @@ export default {
       }else{
         this.coder.addLineClass(val-1,"background","errorLineHighlight")
       }
-      this.coder.setCursor({line:val-1,ch:0})
-      this.coder.setCursor({line:val-1,ch:0})
       this.runLineCurrent = val;
     },
-
+    //调试中止，取消行高亮，取消调试状态的标记
+    changeHighLight(){
+      if(this.runLineCurrent!==0){
+        // console.log("changeline:"+this.runLineCurrent)
+        this.coder.removeLineClass(this.runLineCurrent-1,"background","myLineHighlight")
+        this.coder.removeLineClass(this.runLineCurrent-1,"background","errorLineHighlight")
+      }
+      let filenum = this.filelist.length
+      let i = 0
+      for (i;i<filenum;i++){
+        this.filelist[i]['debug'] = 0
+        //console.log('调试状态结束，置为零')
+      }
+      this.runLineCurrent = 0
+    },
     // 获取断点
-    getBreakPoints(){
+    getBreakPoints(flag = 0, configdirpath = '', configfilename = ''){
       this.breakpoints = []
-      let maxLine = this.coder.doc.size
-      let i = 0;
-      this.coder.state.foldGutter = false
-
-      for(i;i<maxLine;i++){
-        if(this.gutterMarkers_BreakPoint(i)) {
-          this.breakpoints.push(i+1)
+      if(flag === 0){
+        let maxLine = this.coder.doc.size
+        let i = 0;
+        for(i;i<maxLine;i++){
+          if(this.gutterMarkers_BreakPoint(i)) {
+            this.breakpoints.push(i+1)
+          }
+        }
+        console.log(this.breakpoints)
+      }
+      else {
+        let filenum = this.filelist.length
+        let i = 0
+        for (i; i < filenum; i++) {
+          if (this.filelist[i]['fullpath'] === (configdirpath + configfilename)) {
+            this.breakpoints = this.filelist[i]['breakpoints']
+            return this.breakpoints
+          }
         }
       }
-      console.log(this.breakpoints)
       return this.breakpoints
     },
     // 区分断点与折叠
@@ -273,7 +381,7 @@ export default {
     // 初始化
     _initialize () {
       // 初始化编辑器实例，传入需要被实例化的文本域对象和默认配置
-      this.coder = CodeMirror.fromTextArea(this.$refs.textarea, this.options)
+      this.coder = CodeMirror.fromTextArea(this.$refs.text, this.options)
       // 编辑器赋值
       this.coder.setValue(this.value || this.code)
       // 支持双向绑定
@@ -283,6 +391,20 @@ export default {
           this.$emit('input', this.code)
         }
       })
+      // 获取文件根目录
+      axios.get('/getrootpath').then(res => {
+        //console.log(res.data)
+        this.rootPath = res.data;
+        //console.log("-------------获取文件根目录-----------------")
+      })
+      // 额外配置快捷键，并且为最高优先级
+      var map = {
+        'Ctrl-S': () =>  {
+          this.downloadCode()
+        }
+      };
+      this.coder.addKeyMap(map);
+
       // 高亮选中行
       this.coder.on('cursorActivity', () => {
         if(this.lineCurrent !== 0){
@@ -297,7 +419,7 @@ export default {
       this.coder.on("inputRead", (cm, obj) => {
         if (obj.text && obj.text.length >0) {
           let c = obj.text[0][obj.text[0].length - 1]
-          if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_')) {
+          if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
             this.coder.execCommand("autocomplete");
             // 动态提示
             // 获取用户当前的编辑器中的编写的代码
@@ -306,6 +428,7 @@ export default {
             words = words.replace(/[a-z]+[\-|\']+[a-z0-9]+/ig, '').match(/([_a-z0-9]+)/ig);
             // 将获取到的用户的单词传入CodeMirror,并在所有hint文件中做匹配
             CodeMirror.ukeys = words;
+
             cm.showHint({ completeSingle:false });
           }
         }
@@ -313,8 +436,8 @@ export default {
       // 画断点
       this.coder.on("gutterClick", (cm, n) => {
         cm.setGutterMarker(n, "breakpoints", this.gutterMarkers_BreakPoint(n)? null: this.makeMarker(n));
-
       })
+
     },
     // 更改模式
     changeMode (val) {
@@ -328,7 +451,45 @@ export default {
       this.theme = val
     },
 
-    // 以项目路径为根节点，读入文件
+    //文件显示处理
+    multiFile(path,file){
+      let fullpath = path+file
+      for(let i = 0;i<7;i++){
+        this.tabs[i].read = 0
+      }
+      for(let i = 0;i<7;i++){
+        if(this.tabs[i]["show"] === 1){
+          if(this.tabs[i]["openedFullFilePath"]+this.tabs[i]["openedFileName"]===fullpath){
+            this.tabs[i].read = 1
+            //console.log("change to file "+i)
+            return
+          }
+        }
+        else{
+          this.tabs[i]["openedFileName"] = file
+          this.tabs[i]["show"] = 1
+          this.tabs[i]["openedFullFilePath"] = path
+          this.tabs[i].read = 1
+          return
+        }
+      }
+      this.fileStack.push({
+            'path':this.tabs[0]["openedFullFilePath"],
+            'filename':this.tabs[0]["openedFileName"]
+          }
+      )
+      //console.log(this.tabs)
+      for(let j = 0;j<6;j++){
+        this.tabs[j]["openedFileName"] = this.tabs[j+1]["openedFileName"]
+        this.tabs[j]["openedFullFilePath"] = this.tabs[j+1]["openedFullFilePath"]
+      }
+      this.tabs[6]["openedFileName"] = file
+      this.tabs[6]["openedFullFilePath"] = path
+      this.tabs[6].read = 1
+      console.log(this.tabs)
+    },
+    // 以相对路径读入文件
+    /*
     uploadCode(path,file = 'main.py') {
       //if (this.extname==='py'||this.extname==='js'||this.extname==='cpp'){
       //   this.downloadCode()
@@ -376,10 +537,15 @@ export default {
       else{
         this.changeMode('')
       }
+      // 文件显示处理
+
+      this.multiFile(path,file)
+
+      //console.log(this.show)
       this.extname = ext
       this.filename = file
-      this.show1 = 1
-      console.log('success');
+
+      //console.log('success');
       form.append('fileName', this.filename); // 通过append向form对象添加数据
       form.append('path',this.path);
       axios.post('/getfile',form, {
@@ -393,7 +559,8 @@ export default {
               //当读取完成后回调这个函数,然后此时文件的内容存储到了result
               _that.code = this.result
               _that.coder.setValue(_that.code)
-              //获取文件的断点和光标位置，需要放在更改完文件内容之后
+
+              //获取文件的断点和光标位置，这部分需要放在更新完文件内容之后
               let filenum = _that.filelist.length
               let i = 0
               for (i;i<filenum;i++){
@@ -401,6 +568,7 @@ export default {
                   //console.log('equal')
                   var linenum = _that.filelist[i]['line']
                   _that.coder.setCursor({line:linenum,ch:0})
+                  _that.coder.scrollTo(null,_that.filelist[i]['scroll'])
                   _that.breakpoints = _that.filelist[i]['breakpoints']
                   // console.log(_that.breakpoints)
                   let j = 0;
@@ -412,14 +580,14 @@ export default {
               }
             }
           })
+
     },
+     */
     // 调试时以全路径打开文件
-    uploadCodeFullPath(dirpath,file = 'main.py',breaklist,line_no) {
-      //if (this.extname==='py'||this.extname==='js'||this.extname==='cpp'){
-      //   this.downloadCode()
-      // }
+    uploadCodeFullPath(dirpath,file = 'main.py',line_no = null) {
+
       let _that = this
-      //this.path = path;
+      this.path = dirpath;
       var form=new FormData()
       let num = file.split('.')
       let ext= num[num.length - 1]
@@ -461,9 +629,9 @@ export default {
       else{
         this.changeMode('')
       }
+      this.multiFile(dirpath,file)
       this.extname = ext
       this.filename = file
-      this.show1 = 1
       console.log('success');
       form.append('filefullpath', dirpath+this.filename); // 通过append向form对象添加数据
 
@@ -478,28 +646,42 @@ export default {
               //当读取完成后回调这个函数,然后此时文件的内容存储到了result
               _that.code = this.result
               _that.coder.setValue(_that.code)
-              //获取文件的断点和光标位置，需要放在更改完文件内容之后
-              var linenum = line_no
-              _that.coder.setCursor({line:linenum,ch:0})
-              _that.breakpoints = breaklist
-              let j = 0;
+              //获取文件的断点和光标位置，这部分需要放在更新完文件内容之后
+              let filenum = _that.filelist.length
+              let i = 0
+              for (i;i<filenum;i++){
+                if(_that.filelist[i]['fullpath'] === (dirpath+file)){
+                  //console.log('equal')
+                  var linenum = _that.filelist[i]['line']
+                  _that.coder.setCursor({line:linenum,ch:0})
+                  _that.coder.scrollTo(null,_that.filelist[i]['scroll'])
+                  _that.breakpoints = _that.filelist[i]['breakpoints']
+                  // console.log(_that.breakpoints)
+                  let j = 0;
                   for(j;j<_that.breakpoints.length;j++){
                     var n =parseInt(_that.breakpoints[j]) - 1
                     _that.coder.setGutterMarker(n, "breakpoints", _that.makeMarker(n));
                   }
+                  if(line_no!==null){
+                    //console.log("切换文件"+line_no)
+                    _that.filelist[i]['debug'] = parseInt(line_no)
+                  }
+                  if(_that.filelist[i]['debug']!==0){
+                    //console.log("切换文件"+line_no)
+                    _that.changeline(_that.filelist[i]['debug'],true);
+                  }
+                }
+              }
+
             }
           })
     },
     // 保存
     downloadCode() {
-      //定义文件内容，类型为Blob
-      let content = new Blob([this.code])
-      var form=new FormData()
-      form.append('file',content)
-      form.append('filename',this.filename)
-      console.log(this.path)
-      form.append('path',this.path)
-
+      console.log("--------------保存文件----------")
+      if(this.tabs[0].show === 0){
+        return;
+      }
       let filenum = this.filelist.length
       let i = 0
       let flag = 0
@@ -507,45 +689,101 @@ export default {
         if(this.filelist[i]['fullpath'] === (this.path+this.filename)){
           flag = 1
           this.filelist[i]['line'] = this.coder.getCursor().line
+          this.filelist[i]['scroll'] = this.coder.getScrollInfo().top
           this.filelist[i]['breakpoints'] = this.getBreakPoints()
+          this.filelist[i]['debug'] = this.runLineCurrent
         }
       }
       if(flag === 0){
-      this.filelist.push({
-        'fullpath' : this.path+this.filename,
-        'line' : this.coder.getCursor().line,
-        'breakpoints' : this.getBreakPoints(),
-      })
+        this.filelist.push({
+          'fullpath' : this.path+this.filename,
+          'line' : this.coder.getCursor().line,
+          'scroll': this.coder.getScrollInfo().top,
+          'breakpoints' : this.getBreakPoints(),
+          'debug':0,
+        })
       }
       console.log(this.filelist)
-      axios.post('/save', form, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },) // 请求头要为表单
-          .then(response => {
-            console.log(response.data);
-            if (response.data == '1') {
-              this.$message({
-                type: 'success',
-                message: '文件保存成功！'
-              });
-            } else {
-              this.$message({
-                type: 'info',
-                message: '文件保存失败，请稍后重试'
-              });
-            }
-          })
-          .catch(function (error) {
-            console.log(error);
-          })
-
+      var myrootpath = this.rootPath+'/'
+      var pathBefore = this.path
+      this.path = this.path.replace(myrootpath,"")
+      if(pathBefore !== this.path) {
+        console.log(this.path)
+        //定义文件内容，类型为Blob
+        let content = new Blob([this.code])
+        var form = new FormData()
+        form.append('file', content)
+        form.append('filename', this.filename)
+        form.append('path', this.path)
+        this.path = this.rootPath + '/' + this.path
+        axios.post('/save', form, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}},) // 请求头要为表单
+            .then(response => {
+              console.log(response.data);
+              if (response.data == '1') {
+              //  this.$message({
+              //    type: 'success',
+              //    message: '文件保存成功！'
+              //  });
+              } else {
+                this.$message({
+                  type: 'info',
+                  message: '文件保存失败，请稍后重试'
+                });
+              }
+            })
+            .catch(function (error) {
+              console.log(error);
+            })
+      }
     },
-    closeCode(){
+    closeCode(val){
+      this.closetab = val;
       this.downloadCode();
       this.filename ='';
       this.extname ='';
-      this.code ='';
-      this.coder.setValue(this.code);
-      this.show1 = 0;
+      if(this.tabs[val].read === 1) {
+        console.log("read === 1")
+        this.code = '';
+        this.coder.setValue(this.code);
+        if (this.tabs[val + 1].show === 1) {
+          this.uploadCodeFullPath(this.tabs[val + 1].openedFullFilePath, this.tabs[val + 1].openedFileName)
+
+        }
+        else if (val !== 0) {
+          console.log(val)
+          console.log("val!==0")
+          this.tabs[val].show = 0;
+          this.tabs[val].read = 0;
+          this.uploadCodeFullPath(this.tabs[val - 1].openedFullFilePath, this.tabs[val - 1].openedFileName)
+          console.log(this.filename+"   "+this.path)
+        }
+      }
+      for(let i=val;i<6;i++){
+        if(this.tabs[i+1].show===1){
+          this.tabs[i].show = this.tabs[i+1].show
+          this.tabs[i].read = this.tabs[i+1].read
+          this.tabs[i].openedFullFilePath = this.tabs[i+1].openedFullFilePath
+          this.tabs[i].openedFileName = this.tabs[i+1].openedFileName
+        }
+        else{
+          this.tabs[i].show = 0
+        }
+      }
+      this.tabs[6].show = 0
+      //console.log( "close file:" +val+"show:"+this.tabs[val].show+"read:"+this.tabs[val].read)
+      //this.show[val] = 0;
     },
+    openCode(val){
+      if(this.closetab === val){
+        return
+      }
+      //console.log("openfile"+ this.tabs[val].openedFileName)
+      if(this.tabs[val].read===0){
+        this.downloadCode()
+        this.uploadCodeFullPath(this.tabs[val].openedFullFilePath, this.tabs[val].openedFileName)
+      }
+      this.closetab = 7
+    }
 
   }
 }
@@ -553,9 +791,9 @@ export default {
 
 <style lang="stylus" rel="stylesheet/stylus">
 .normalLineHighlight
-  background-color: #e1f5fe;
+  background-color: #e0f2f1;
   z-index 2
-  opacity 0.6
+  opacity 0.8
 .myLineHighlight
   background-color: #FF3D00;
   z-index 3
@@ -570,21 +808,43 @@ export default {
 
   .CodeMirror
     z-index 1
-    height 93%
+    height 100%
     .CodeMirror-code
 
     .CodeMirror-hints {
       z-index: 10;
     }
+    .CodeMirror-gutters{
+      width 40px;
+      position absolute;
+      left 0px;
+    }
     .CodeMirror-match-high-light {
-        background-color: #ae00ae;
-      }
-
+      background-color: #ae00ae;
+    }
     .cm-matchhighlight{
-      background-color: #b3e5f7;
-      opacity 0.6;
+      background-color: #a7ffeb;
+      //opacity 0.6;
       z-index 40;
     }
+
+.coder-area
+  height: 93%;
+.place-holder
+  position absolute;
+  height: 100%;
+  width :100%;
+  background-color #ffffff;
+  z-index 20;
+  top: 0px;
+  left 0px;
+  text-align center;
+  .text-box
+    position:relative;
+    top:80px;
+  .user-hint
+    list-style-type:none;
+    color gray;
 .code_top
   position: relative;
   width: 100%;
@@ -599,26 +859,31 @@ export default {
     width :120px;
     font-size 12px;
     lineHeight: 19px;
+    border-left: 0px;
+    border-bottom 0px;
+
     .close
       position: absolute;
-      top:0px;
+      top:10%;
       width 20px;
+      //background-color #e0e0e0;
       left:95px;
-      height 100%;
+      height 80%;
       border-style: hidden;
       lineHeight: 19px;
+      z-index 20
   .code-theme-select
     position absolute;
     z-index 20;
     left 120px;
-    top -42px;
+    top -48px;
     max-width 120px;
     lineHeight: 19px;
   .code-font-size
     position absolute;
     z-index 20;
     left 260px;
-    top -42px;
+    top -48px;
     width 50px;
     text-align right;
     lineHeight: 19px;
@@ -628,7 +893,7 @@ export default {
     background-color #fafafa;
     z-index 20;
     left 315px;
-    top -22px;
+    top -28px;
     height 17px;
     text-align center;
   .code-font-size-add
@@ -637,7 +902,7 @@ export default {
     background-color #fafafa;
     z-index 20;
     left 315px;
-    top -42px;
+    top -48px;
     height 17px;
     width 20px;
     text-align center;

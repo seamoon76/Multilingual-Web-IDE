@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import UTF8 from "utf-8";
+//import UTF8 from "utf-8";
 
 
 export default {
@@ -70,7 +70,7 @@ export default {
     },
     get_step_out_order(language) {
       if (language === 'python') {
-        return 'return\n'
+        return 'r\n'
       } else if (language === 'c' || language === 'cpp' || language === 'c++') {
         return 'finish\n'
       }
@@ -170,10 +170,13 @@ export default {
               console.log(line_no,local_variables,filename,dirpath,breaklist)
               if (filename != this_pointer.$refs.child.filename) {
                 this_pointer.$refs.child.filename = filename
-                this_pointer.$refs.child.uploadCodeFullPath(dirpath, filename, breaklist, line_no)
+                this_pointer.$refs.child.uploadCodeFullPath(dirpath, filename, line_no)
+              }
+              else {
+                this_pointer.$refs.child.changeline(line_no);
               }
               this_pointer.monitoredVariables = local_variables.toString();
-              this_pointer.$refs.child.changeline(line_no);
+
 
 
               // console.log('change line to ' + line_no)

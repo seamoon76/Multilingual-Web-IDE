@@ -28,11 +28,11 @@
                     <el-button v-show="debugState" id="run-till-next-breakpoint" type="success" plain
                         icon="el-icon-arrow-right" style="font-size: 30px" size="mini" circle @click="debugNext"></el-button>
                 </el-tooltip>
-                <el-tooltip effect="dark" content="步入(step)" placement="bottom">
+                <el-tooltip effect="dark" content="步入(step into)" placement="bottom">
                     <el-button v-show="debugState" id="step-in" plain icon="el-icon-download" style="font-size: 30px"
                         size="mini" circle @click="debugStepIn"></el-button>
                 </el-tooltip>
-                <el-tooltip effect="dark" content="步出(return)" placement="bottom">
+                <el-tooltip effect="dark" content="步出(step over/return)" placement="bottom">
                     <el-button v-show="debugState" id="step-out" plain icon="el-icon-upload2" style="font-size: 30px"
                         size="mini" circle @click="debugStepOut"></el-button>
                 </el-tooltip>
@@ -488,7 +488,6 @@ export default {
       this.optionData = object
       this.nodeData = Node
       console.log(object.isdir)
-      debugger
       if (object.isdir == 'false') { // 是文件节点
         this.fileMenuVisible = true;
         console.log("file", this.nodeData.id)
@@ -523,7 +522,10 @@ export default {
         console.log(this.configform.runningFileName)
         this.configform.runningFilePath = path + this.configform.runningFileName
         console.log(this.configform.runningFilePath)
-        this.$refs.child.uploadCode(path, this.optionData.label)
+        if(this.$refs.child.path+this.$refs.child.filename!==this.$refs.child.rootPath+'/'+path+this.optionData.label){
+          this.$refs.child.downloadCode()
+        }
+        this.$refs.child.uploadCodeFullPath(this.$refs.child.rootPath+'/'+path, this.optionData.label)
         var data = Qs.stringify({
           name: this.configform.runningFileName,
           path: this.configform.runningFilePath,
@@ -974,6 +976,15 @@ export default {
 
     startDebug() {
       this.$refs.child.downloadCode()
+      var dirpath = this.$refs.child.rootPath +'/'+ this.configform['runningFilePath'].replace(this.configform['runningFileName'],'')
+      var flag = 0;
+      if(dirpath+this.configform['runningFileName'] !== this.$refs.child.path+this.$refs.child.filename){
+        flag = 1;
+      }
+      if(flag === 1){
+        this.$refs.child.uploadCodeFullPath(dirpath,this.configform['runningFileName'])
+      }
+
       this.debugState = true;
       var data = Qs.stringify({language: this.language})
 
@@ -981,13 +992,13 @@ export default {
         console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -1) {
-          let breakpoints = this.$refs.child.getBreakPoints();
+          let breakpoints = this.$refs.child.getBreakPoints(flag,dirpath,this.configform['runningFileName']);
           console.log(breakpoints);
           this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
 
         } else {
           this.createDebugConsole();
-          let breakpoints = this.$refs.child.getBreakPoints();
+          let breakpoints = this.$refs.child.getBreakPoints(flag,dirpath,this.configform['runningFileName'])
           console.log(breakpoints)
           this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
         }
@@ -1043,6 +1054,7 @@ export default {
       }
 
       this.socket.emit("pty-input", {input: this.$refs.debugger.get_stop_order(this.language)});
+      this.$refs.child.changeHighLight();
       this.debugState = false
 
     },

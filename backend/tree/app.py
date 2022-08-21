@@ -335,7 +335,11 @@ def savefile():
     result = 0
     if (request.form['path']):
         saveDirFullPath = os.path.join(convertedPath, request.form['path'])
-        project = Project.query.filter(Project.path == request.form['path'][:-1]).first()
+        if '/' in request.form['path']:
+            projectPath=request.form['path'].split('/')[0]
+        else:
+            projectPath=request.form['path']
+        project = Project.query.filter(Project.path == projectPath).first()
         time = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         project.time = time
         log_path = project.log_path
@@ -437,6 +441,9 @@ def get_debug_cmd():
     ################################################
     return json.dumps({'cmd': cmd})
 
+@app.route('/getrootpath', methods=['GET', 'POST'])
+def get_root_path():
+    return Paths.rootPath
 
 if __name__ == '__main__':
     # app.debug = True
