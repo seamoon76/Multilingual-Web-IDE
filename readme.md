@@ -1,10 +1,6 @@
 # Multilingual-Web-IDE:A web integrated development environment that can support multiple languages
 
-<img src="https://img.shields.io/badge/Vue-^2.6.14-blue.svg">
-<img src="https://img.shields.io/badge/Flask-2.2.2-blue">
-<img src="https://img.shields.io/badge/CodeMirror-5.65-blue">
-<img src="https://img.shields.io/badge/xterm-^4.19.0-blue">
-<img src="https://img.shields.io/badge/element_ui-^2.15.9-blue">
+<img src="https://img.shields.io/badge/Vue-^2.6.14-blue.svg"> <img src="https://img.shields.io/badge/Flask-2.2.2-blue"> <img src="https://img.shields.io/badge/CodeMirror-5.65-blue"> <img src="https://img.shields.io/badge/xterm-^4.19.0-blue"> <img src="https://img.shields.io/badge/element_ui-^2.15.9-blue">
 
 
 <img src="https://img.shields.io/badge/license-MIT-green">
@@ -14,7 +10,7 @@ A web integrated development environment (IDE) built with Vue and Flask, support
 
 ## setup
 ### backend
-**run on Linux or macOS, if your OS is Windows, you can use WSL**
+Backend cannot run on Windows OS. You should run it on **Linux or macOS**, if your OS is Windows, you can use [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) or [virtual machine](https://www.vmware.com/).
 
 #### prepare
 
@@ -27,11 +23,11 @@ pip3 install psutil
 sudo apt install gdb
 ```
 
-in `backend/tree/config.py`，Specifies `rootPath` of the working directory of the IDE backend, which will be used to store projects. Make sure that the specified path exists.
-If you are using WSL, '/mnt/d' means disk "D:" in Windows.
+In `backend/tree/config.py`，specifies `rootPath` of the working directory of the IDE backend, which will be used to store projects. Make sure that the specified path exists.
+If you are using WSL, '/mnt/c' means disk "C:" in Windows.
 ```
 class Paths():
-    rootPath = '/mnt/d/workspace'
+    rootPath = '/mnt/c/workspace'
 ```
 
 #### run backend
