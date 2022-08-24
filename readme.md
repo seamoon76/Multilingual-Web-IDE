@@ -167,7 +167,8 @@ get_continue_order(language) {
 
 ## Author & Contact
 
-+ 马骐 Email: seam<span style="display:none;">ooo</span>oon2020@<span style="display:none;">fff</span>163.<span style="display:none;">kk</span>com
++ 马骐 Email:<span>seamoon2020 at 163 dot com</span>
+
 + 余欣然
 + 孙骜
 + 潘乐怡
