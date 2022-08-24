@@ -49,6 +49,9 @@ export default {
       } else if (language === 'c' || language === 'cpp' || language === 'c++') {
         return 'c\n'
       }
+      // you can add new language here
+      //
+      //
     },
     get_next_order(language) {
 
@@ -128,17 +131,6 @@ export default {
           return
         }
 
-        // var lineno=1
-        //var last_character = data_output[data_output.length - 2]
-        //var tmp = data_output.lastIndexOf("\n")
-        // if (last_character == '$') {
-        //   if (tmp != -1) {
-        //     output = data_output.slice(0, data_output.lastIndexOf("\n") + 1) + "$ "
-        //   } else {
-        //     output = data_output.substring(data_output.length - 2)
-        //   }
-        // }
-        //console.log('data_output.indexOf(".end"):'+data_output.indexOf(".end"))
         if(data_output.indexOf("will be restarted")!==-1)
         {
           let info_index=data_output.indexOf("The program finished");
@@ -176,10 +168,7 @@ export default {
                 this_pointer.$refs.child.changeline(line_no);
               }
               this_pointer.monitoredVariables = local_variables.toString();
-
-
-
-              // console.log('change line to ' + line_no)
+              
             } catch (e) {
               console.error(e)
             }
@@ -266,10 +255,10 @@ export default {
               //   this_pointer.monitoredVariables = u16
               if(language=='c')
               {
-                str_locals=str_locals.replace(/.\[(3\d)?m/g, "")
+                str_locals=str_locals.replace(/.\[([23]\d)?m/g, "")
               }
               else {
-                str_locals = str_locals.replace(/.\[(3\d)?m/g, "")
+                str_locals = str_locals.replace(/.\[([23]\d)?m/g, "")
               }
               this_pointer.monitoredVariables = str_locals
               //console.log("monitoredVariables:",this_pointer.monitoredVariables)

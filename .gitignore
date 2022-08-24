@@ -45,3 +45,4 @@ htmlcov/
 .coverage
 .coverage.*
 *,cover
+todo.txt

@@ -11,7 +11,7 @@ def get_python_run_cmd(run_config):
 def get_python_debug_cmd(run_config):
     fullpath = os.path.join(Paths.rootPath, run_config['execpath'])
     cmd = ' '.join(
-        [sys.executable, Paths.backendRootPath + '/onlinePdb/mypdb.py', fullpath, run_config['execargs']]) + '\n'
+        [sys.executable, os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/onlinePdb/mypdb.py', fullpath, run_config['execargs']]) + '\n'
     return cmd
 
 def get_c_run_cmd(run_config):

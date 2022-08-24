@@ -275,7 +275,7 @@ export default {
         var data = Qs.stringify({path: this.getPath() + this.optionData.label, fileName: value});
         axios.post('/newfile', data, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(res => {
           if (res.data == '1') {
-            console.log("1");
+            //console.log("1");
             const newChild = {   // 新建一个子节点
               id: id++,
               label: value,
@@ -295,7 +295,7 @@ export default {
               message: '文件新建成功！'
             });
           } else {
-            console.log("0");
+            //console.log("0");
             this.$message({
               type: 'info',
               message: '新建失败'
@@ -340,7 +340,6 @@ export default {
             if (!this.nodeData.expanded) {
               this.nodeData.expanded = true
             }
-            console.log("here3");
             this.$message({
               type: 'success',
               message: '文件夹新建成功！'
@@ -462,7 +461,7 @@ export default {
       console.log(param.get('file')); // FormData私有类对象，访问不到，可以通过get判断值是否传进去
       axios.post('/upload', param, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}},) // 请求头要为表单
           .then(response => {
-            console.log(response.data);
+            //console.log(response.data);
             if (response.data == '1') {
               this.getData()
               this.$message({
@@ -487,15 +486,15 @@ export default {
     rightMenu(MouseEvent, object, Node, element) {
       this.optionData = object
       this.nodeData = Node
-      console.log(object.isdir)
+      //console.log(object.isdir)
       if (object.isdir == 'false') { // 是文件节点
         this.fileMenuVisible = true;
-        console.log("file", this.nodeData.id)
+        //console.log("file", this.nodeData.id)
         let menu = document.querySelector("#filemenu");
         menu.style.cssText = "position: fixed; left: " + (MouseEvent.clientX - 10) + 'px' + "; top: " + (MouseEvent.clientY - 25) + 'px; z-index: 999; cursor:pointer;';
       } else { // 是文件夹节点
         this.folderMenuVisible = true;
-        console.log("folder", this.nodeData.id)
+        //console.log("folder", this.nodeData.id)
         let menu = document.querySelector("#foldermenu");
         menu.style.cssText = "position: fixed; left: " + (MouseEvent.clientX - 10) + 'px' + "; top: " + (MouseEvent.clientY - 25) + 'px; z-index: 999; cursor:pointer;';
       }
@@ -532,7 +531,7 @@ export default {
           runningArgs: this.configform.runningArgs
         })
         axios.post('/saveConfig', data, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(res => {
-          console.log(res.data)
+          //console.log(res.data)
           if (res.data == '1') {
             this.$message({
               type: 'success',
@@ -600,7 +599,7 @@ export default {
 
       socket.on("pty-output", function (data) {
 
-        console.log("new output received from server:", data.output);
+        //console.log("new output received from server:", data.output);
         term.write(data.output);
       });
 
@@ -719,7 +718,7 @@ export default {
         try {
           fitAddon.fit();
         } catch (e) {
-          console.log("e", e.message);
+          //console.log("e", e.message);
         }
       }
 
@@ -734,55 +733,10 @@ export default {
         let output=data.output
         //let output=that.$refs.debugger.utf8To16(data.output)
             // console.log(u16)
-        console.log("new output received from server:", output);
-        console.log('lang:'+that.language)
+        //console.log("new output received from server:", output);
+        //console.log('lang:'+that.language)
         that.$refs.debugger.handleOutput(output,that,that.language)
-        // //捕获后端发来的串，并处理
-        // var output = data.output
-        // var last_character = data.output[data.output.length - 2]
-        // var tmp = data.output.lastIndexOf("\n")
-        // if (last_character == '$') {
-        //   if (tmp != -1) {
-        //     output = data.output.slice(0, data.output.lastIndexOf("\n") + 1) + "$ "
-        //   } else {
-        //     output = data.output.substring(data.output.length - 2)
-        //   }
-        // }
-        // let tmp_idx_begin=data.output.lastIndexOf("[my-pdb]")
-        //
-        //
-        //   let tmp_idx = data.output.lastIndexOf("lineno:")
-        //   let tmp_idx_num_end = data.output.lastIndexOf(".end")
-        //   let left_idx_locals = data.output.lastIndexOf("{")
-        //   let right_idx_locals = data.output.lastIndexOf("}")
-        //   if (tmp_idx !== -1 && tmp_idx_num_end !== -1) {
-        //     try {
-        //       let line_no = parseInt(data.output.substring(tmp_idx + 7, tmp_idx_num_end));
-        //       that.$refs.child.changeline(line_no);
-        //       console.log('change line to ' + line_no)
-        //     } catch (e) {
-        //       console.error(e)
-        //     }
-        //     if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-        //       let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
-        //       if(local_variables.lastIndexOf('{k:v for )')===-1) {
-        //         that.monitoredVariables = local_variables;
-        //       }
-        //
-        //     }
-        //   }
-        //   else if (left_idx_locals !== -1 && right_idx_locals !== -1) {
-        //       let local_variables = data.output.substring(left_idx_locals, right_idx_locals + 1);
-        //       if(local_variables.lastIndexOf('{k:v for )')===-1) {
-        //         that.monitoredVariables = local_variables;
-        //       }
-        //
-        //     }
-        //   else {
-        //     debug_console.write(output);
-        //   }
-        //
-        //
+
 
 
       });
@@ -866,7 +820,7 @@ export default {
         try {
           fitAddon.fit();
         } catch (e) {
-          console.log("e", e.message);
+          //console.log("e", e.message);
         }
       }
 
@@ -879,7 +833,7 @@ export default {
 
       socket.on("pty-output", function (data) {
         var output = data.output
-        console.log("new output received from server:", output);
+        //console.log("new output received from server:", output);
         //捕获后端发来的串，并处理
 
         if(output.lastIndexOf('PS1="$"')===-1)
@@ -956,7 +910,7 @@ export default {
       this.console_num = 0
 
       this.currentIndex = Math.max.apply(null, this.validIndex) - 1
-      console.log('this.currentIndex'+this.currentIndex)
+      //console.log('this.currentIndex'+this.currentIndex)
       this.currentTerminal = this.terminals[this.currentIndex + 1]
 
       if (this.socket) {
@@ -989,17 +943,17 @@ export default {
       var data = Qs.stringify({language: this.language})
 
       axios.post('/debug-order',data,{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then((res) => {
-        console.log(res.data)
+        //console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -1) {
           let breakpoints = this.$refs.child.getBreakPoints(flag,dirpath,this.configform['runningFileName']);
-          console.log(breakpoints);
+          //console.log(breakpoints);
           this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
 
         } else {
           this.createDebugConsole();
           let breakpoints = this.$refs.child.getBreakPoints(flag,dirpath,this.configform['runningFileName'])
-          console.log(breakpoints)
+          //console.log(breakpoints)
           this.socket.emit("pty-input", {input: res.data.cmd + this.$refs.debugger.get_set_breakpoints_order(breakpoints,this.language)+this.$refs.debugger.start(this.language)});
         }
       }).catch(() => {
@@ -1077,7 +1031,7 @@ export default {
         runningArgs: this.configform.runningArgs
       })
       axios.post('/saveConfig', data, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(res => {
-        console.log(res.data)
+        //console.log(res.data)
         if (res.data == '1') {
           this.$message({
             type: 'success',
@@ -1097,7 +1051,7 @@ export default {
       var data = Qs.stringify({language: this.language})
 
       axios.post('/run',data,{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then((res) => {
-        console.log(res.data)
+        //console.log(res.data)
         //this.createDebugConsole();
         if (this.currentIndex == -2) {
           //console.log(1083)

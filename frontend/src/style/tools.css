@@ -14,7 +14,7 @@
 #configForm {
     display: none;
     position: fixed;
-    height: 450px;
+    height: 350px;
     width: 400px;
     overflow: auto;
     margin: auto;
