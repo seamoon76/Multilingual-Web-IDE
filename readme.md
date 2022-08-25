@@ -66,9 +66,6 @@ cd frontend
 npm run lint
 ```
 
-## Usage
-
-see `doc/usage.pdf`
 
 ## Advanced:add more language
 
@@ -95,7 +92,7 @@ We have supported 3 lanugage(Python,c,c++), you can add more language as long as
 + [Element-UI](https://www.npmjs.com/package/element-ui)
 + [pdb](https://docs.python.org/3/library/pdb.html)
 + [pyxtermjs](https://github.com/cs01/pyxtermjs)
-+ [flaskFileManagerVue](https://github.com/flaskFileManagerVue)
++ [flaskFileManagerVue](https://github.com/XieB/flaskFileManagerVue)
 
 
 ## License
