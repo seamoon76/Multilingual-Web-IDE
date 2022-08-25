@@ -66,6 +66,9 @@ cd frontend
 npm run lint
 ```
 
+## Usage
+
+see `doc/使用方法.pdf`
 
 ## Advanced:add more language
 
